@@ -1,0 +1,13 @@
+osobuco:
+  data_path: /tmp
+  log_level: DEBUG
+  silent: false
+
+storage:
+  type: artifacts
+
+models:
+  - name: example_model
+    load: app.mpi.bridge.load
+    endpoints:
+      /predict: app.mpi.bridge.predict

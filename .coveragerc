@@ -1,0 +1,12 @@
+[run]
+source = .
+omit =
+    tests/*
+    notebooks/*
+    conf/*
+    data/raw/*
+    data/tests/*
+    models/tests/*
+    docs/*
+    .eggs/*
+    setup.py

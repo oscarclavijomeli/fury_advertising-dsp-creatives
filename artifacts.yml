@@ -1,0 +1,12 @@
+artifacts:
+  def_version: "1.0"
+
+  example_training_dataset:
+    type: fda.Bytes
+    description: "An dummy dataset, used as an example to represent a data Artifact"
+    major_version: "0"
+  
+  example_model:
+    type: fda.Model
+    description: "A dummy model, used as an example."
+    major_version: "0"

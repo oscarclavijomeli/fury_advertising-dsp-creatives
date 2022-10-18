@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "app"
+version = "0.0.0"
+description = "FDA 2 application"
+authors = []
+classifiers = [
+    "Programming Language :: Python :: 3.7"
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+fda = "^0.*"
+fda-toolkit = "^1.*"
+coverage = "4.5.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "5.0.0"
+pytest-cov = "2.6.0"
+pytest-mock = "^3.6.1"
+
+[[tool.poetry.source]]
+name = "meli"
+url = "https://pypi.artifacts.furycloud.io/simple/"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+# pyproject.toml
+[tool.pytest.ini_options]
+addopts = "--verbose --junit-xml=report.xml --cov --cov-report=xml:coverage.xml"

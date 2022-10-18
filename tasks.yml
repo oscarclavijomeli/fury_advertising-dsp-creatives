@@ -1,0 +1,37 @@
+tasks:
+  def_version: "1.0"  # The tasks.yml file format version.
+
+  #
+  # Task to generate instances of the training dataset (used to train the example_model)
+  #
+  create_training_dataset:  # this is the Task name
+    type: fda.etl  # https://furydocs.io/molida/guide/#/semantic_tasks?id=task-types
+
+    context:
+      entrypoint: src/app/data/run_etl.py
+      flavor: small  # https://furydocs.io/molida/guide/#/flavors
+
+    outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
+      - example_training_dataset
+
+    # No Inputs declared. See https://furydocs.io/molida/guide/#/semantic_tasks?id=inputs
+
+
+  #
+  # Task to train instances of the example_model.
+  # It uses as input an example_training_dataset
+  #
+  train_example_model:  # this is the Task name
+    type: fda.train  # https://furydocs.io/molida/guide/#/semantic_tasks?id=task-types
+
+    context:
+      entrypoint: src/app/model/train.py
+      flavor: small  # https://furydocs.io/molida/guide/#/flavors
+
+    outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
+      - example_model
+
+    inputs:
+      # No runtime arguments declared
+      artifacts:
+        - name: example_training_dataset

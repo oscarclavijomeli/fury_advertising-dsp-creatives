@@ -1,0 +1,46 @@
+# For more information on how to run this example workflow,
+# refer to the "Running the example workflow" section on local README.md
+workflows:
+    def_version: "1.0" # The workflows.yml file format version.
+
+    #
+    # Workflow that orchestrate the run of the two example tasks declared in tasks.yml
+    #
+    example_workflow:  # This is workflow name
+        # Optional workflow description
+        description: "A simple example of a workflow to train a model using data obtained from another task."
+        # Workflow's operations declaration
+        operations:
+
+            create_dataset:  # First operation name
+                description: "Operation to obtain data."  # Optional operation description
+
+                outputs:  # Declaration of task outputs versions
+                    artifacts:
+                        -   name: "example_training_dataset"
+                            version: "0.0.{{TASK_COUNT}}-example"
+
+                task-image:  # Configuration of task-image to be run (needs to be successfully prepared)
+                    name: "create_training_dataset"
+                    version: "1.0.0-running-workflows-example"
+                    # No inputs need to be declared for this task to run
+
+            train_model_from_dataset: # Second operation name
+                description: "Train a model using data from the other operation." # Optional operation description
+
+                outputs:  # Declaration of task outputs versions
+                    artifacts:
+                        -   name: "example_model"
+                            version: "0.0.{{TASK_COUNT}}-example"
+
+                dependencies: # Declaration of operation dependencies is explicit
+                    - "create_dataset"
+
+                task-image: # Configuration of task-image to be run (needs to be successfully prepared)
+                    name: "train_example_model"
+                    version: "1.0.0-running-workflows-example"
+                    inputs: # Declaring task inputs
+                        artifacts:
+                            - name: "example_training_dataset"
+                              reference: "create_dataset/example_training_dataset"
+                        # No runtime arguments need to be declared for this task to run
