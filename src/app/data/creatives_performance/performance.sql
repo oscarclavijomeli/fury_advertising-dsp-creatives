@@ -39,6 +39,7 @@ clicks AS (
 prints_clicks AS (
     SELECT
         prints.id AS id,
+        prints.ds,
         SUBSTRING(prints.ds, 1, 10) AS `cday`,
         CAST(
             get_json_object(prints.event_data, '$.campaign_id') AS INT
@@ -62,7 +63,8 @@ SELECT
     line_item_id,
     creative_id,
     SUM(target) AS n_clicks,
-    COUNT(*) AS n_prints
+    COUNT(*) AS n_displays,
+    COUNT(DISTINCT ds) AS n_hours
 FROM prints_clicks
 GROUP BY 1,2,3,4
 

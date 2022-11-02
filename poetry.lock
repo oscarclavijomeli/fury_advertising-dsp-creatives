@@ -503,7 +503,7 @@ reference = "meli"
 
 [[package]]
 name = "google-cloud-bigquery-storage"
-version = "1.1.1"
+version = "1.1.2"
 description = "BigQuery Storage API API client library"
 category = "main"
 optional = false
@@ -511,6 +511,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 
 [package.dependencies]
 google-api-core = {version = ">=1.31.5,<2.0.0 || >2.3.0,<3.0.0dev", extras = ["grpc"]}
+protobuf = "<4.0.0dev"
 
 [package.extras]
 fastavro = ["fastavro (>=0.21.2)"]
@@ -1556,6 +1557,27 @@ url = "https://pypi.artifacts.furycloud.io/simple"
 reference = "meli"
 
 [[package]]
+name = "thrift"
+version = "0.13.0"
+description = "Python bindings for the Apache Thrift RPC system"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = ">=1.7.2"
+
+[package.extras]
+all = ["tornado (>=4.0)", "twisted"]
+tornado = ["tornado (>=4.0)"]
+twisted = ["twisted"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.artifacts.furycloud.io/simple"
+reference = "meli"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -1665,7 +1687,7 @@ reference = "meli"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "413a15ab33e050228f4977a6071da66bfcda993220b864e33c78eab6e8108771"
+content-hash = "f8fea45d2ca8a58f79d5fc9615ee9ae0a9773d043e7799836d1ee5718a731914"
 
 [metadata.files]
 atomicwrites = [
@@ -1893,8 +1915,8 @@ google-cloud-bigquery = [
     {file = "google_cloud_bigquery-1.20.0-py2.py3-none-any.whl", hash = "sha256:2ece927eb439ca5659fa82863f6f13ee202f3b20504fec02f087e5ba8eec16fd"},
 ]
 google-cloud-bigquery-storage = [
-    {file = "google-cloud-bigquery-storage-1.1.1.tar.gz", hash = "sha256:f0b5703007eab4f0d68617830c1ac9105a0d7dc3bb840229f2ce1cfdd9928eae"},
-    {file = "google_cloud_bigquery_storage-1.1.1-py2.py3-none-any.whl", hash = "sha256:e6c011acccc3f95aa232cb1e80ee710c1954686496991fd53505df5ee6015f20"},
+    {file = "google-cloud-bigquery-storage-1.1.2.tar.gz", hash = "sha256:ab9dfaa0915bad3f33cca4b6a96b489eaf0d0d0446f896f19138db00939b814c"},
+    {file = "google_cloud_bigquery_storage-1.1.2-py2.py3-none-any.whl", hash = "sha256:a0b49b7dfc6b96af7a3cdb038dc9c0328c6a7a46e5cc641e75a1c97e6f17e5a1"},
 ]
 google-cloud-core = [
     {file = "google-cloud-core-1.7.3.tar.gz", hash = "sha256:dfa40e9d75a825632103326cc52617e3652658c17c6f7360448388d6c9d009fe"},
@@ -2589,6 +2611,9 @@ sqlalchemy = [
 tabulate = [
     {file = "tabulate-0.8.10-py3-none-any.whl", hash = "sha256:0ba055423dbaa164b9e456abe7920c5e8ed33fcc16f6d1b2f2d152c8e1e8b4fc"},
     {file = "tabulate-0.8.10.tar.gz", hash = "sha256:6c57f3f3dd7ac2782770155f3adb2db0b1a269637e42f27599925e64b114f519"},
+]
+thrift = [
+    {file = "thrift-0.13.0.tar.gz", hash = "sha256:9af1c86bf73433afc6010ed376a6c6aca2b54099cc0d61895f640870a9ae7d89"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
