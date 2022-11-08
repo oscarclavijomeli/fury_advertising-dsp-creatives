@@ -1,7 +1,7 @@
 # Título
 [feature/bugfix/enhancement/hotfix/release/test]/[iniciales_autor]\_[jira-ticket]\_[descripción_corta]
 
-*Ejemplo: feature/eduMeli-mmp-023-nuevo_ranking*
+*Ejemplo: feature/nia_dsp-023_github_template_modified*
 
 ## Enlace a ticket
 - [Título](https://mercadolibre.atlassian.net/browse/xxx)
