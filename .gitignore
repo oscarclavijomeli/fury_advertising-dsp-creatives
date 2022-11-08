@@ -81,3 +81,7 @@ report.xml
 # FDA 2
 
 conf/local/
+
+# data
+*.csv
+logs.*

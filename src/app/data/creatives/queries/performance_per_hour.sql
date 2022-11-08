@@ -3,6 +3,7 @@ WITH prints AS (
         `id`,
         `ds`,
         `event_data`,
+        get_json_object(`event_data`, '$.content_source') AS content_source,
         get_json_object(`event_data`, '$.print_id') AS print_id,
         `user`.`user_id` AS `user_id`,
         unix_timestamp(replace(`server_timestamp`, "T", ' '), "yyyy-MM-dd HH:mm:ss.SSSZ") AS ts
@@ -39,8 +40,9 @@ clicks AS (
 prints_clicks AS (
     SELECT
         prints.id AS id,
-        prints.ds,
         SUBSTRING(prints.ds, 1, 10) AS `cday`,
+        CAST(SUBSTRING(prints.ds, 12) AS INT) AS `chour`,
+        prints.content_source,
         CAST(
             get_json_object(prints.event_data, '$.campaign_id') AS INT
         ) AS campaign_id,
@@ -59,12 +61,12 @@ prints_clicks AS (
 
 SELECT
     cday,
+    chour,
+    content_source,
     campaign_id,
     line_item_id,
     creative_id,
     SUM(target) AS n_clicks,
-    COUNT(*) AS n_displays,
-    COUNT(DISTINCT ds) AS n_hours
+    COUNT(*) AS n_displays
 FROM prints_clicks
-GROUP BY 1,2,3,4
-
+GROUP BY 1,2,3,4,5,6
