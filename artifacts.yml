@@ -10,3 +10,13 @@ artifacts:
     type: fda.Model
     description: "A dummy model, used as an example."
     major_version: "0"
+    
+  clicks_prints_per_day:
+    type: fda.Bytes
+    description: "Daily creatives performance data."
+    major_version: "0"
+
+  test_cr_parameters:
+    type: fda.Bytes
+    description: "Artifact to be consumed by the Bidder."
+    major_version: "0"

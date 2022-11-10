@@ -67,6 +67,6 @@ SELECT
     line_item_id,
     creative_id,
     SUM(target) AS n_clicks,
-    COUNT(*) AS n_displays
+    COUNT(*) AS n_prints
 FROM prints_clicks
 GROUP BY 1,2,3,4,5,6

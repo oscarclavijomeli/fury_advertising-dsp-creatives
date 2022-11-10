@@ -44,3 +44,50 @@ workflows:
                             - name: "example_training_dataset"
                               reference: "create_dataset/example_training_dataset"
                         # No runtime arguments need to be declared for this task to run
+
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
+    create_performance_data:
+        description: "Ingests daily creatives performance data and creates the artifact to be consumed by the Bidder."
+        operations:
+        
+            daily_performance:
+                description: "Ingests daily creatives performance data."
+                
+                outputs:  # Declaration of task outputs versions
+                    artifacts:
+                        -   name: "clicks_prints_per_day"
+                            version: "1.2.{{TASK.TASK_COUNT}}"
+
+                task-image: # Configuration of task-image to be run (needs to be successfully prepared)
+                    name: "daily_performance"
+                    version: "1.0.0"
+                    inputs: # Declaring task inputs
+                        artifacts:
+                            - name: "clicks_prints_per_day"
+                              version: "@latest"
+                              
+                              
+            beta_estimation:
+                description: "Calculates alpha and beta parameters from the last version of clicks_prints_per_day artifact."
+                
+                outputs:
+                    artifacts:
+                        -   name: "test_cr_parameters"
+                            version: "1.2.{{TASK.TASK_COUNT}}-MLA-Production"
+
+                dependencies:
+                    - "daily_performance"
+                    
+                task-image: # Configuration of task-image to be run (needs to be successfully prepared)
+                    name: "beta_estimation"
+                    version: "1.0.0"
+                    inputs: # Declaring task inputs
+                        artifacts:
+                            - name: "clicks_prints_per_day"
+                              reference: "daily_performance/clicks_prints_per_day"
+                        # No runtime arguments need to be declared for this task to run
+                        
