@@ -107,6 +107,6 @@ class BetaEstimator:
 
         logger.info("Saving info as an artifact...")
         # serialize
-        data_bytes = json.dumps(self.output)  # nosec
+        data_bytes = json.dumps(self.output).encode("utf-8")
         runtime.outputs[artifact_name].save_from_bytes(data=data_bytes)
         logger.info("Artifact saved")
