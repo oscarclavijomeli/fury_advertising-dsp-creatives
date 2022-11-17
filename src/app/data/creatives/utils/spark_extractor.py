@@ -20,7 +20,7 @@ from app.data.utils.load_query import load_format
 logger = logging.getLogger(__name__)
 
 
-@retry(EOFError, tries=6, delay=60, backoff=2)
+@retry(EOFError, tries=3, delay=60, backoff=2)
 def run_query(query: str, spark: SparkSQL) -> pd.DataFrame:
     """
     Runs a query using a Spark instance and retry if an EOFError is found
@@ -69,46 +69,57 @@ class SparkExtractor:
             self.output = pickle.loads(runtime.inputs.artifacts[artifact_name].load_to_bytes())  # nosec
         logger.info("Input artifact prepared.")
 
-    def update(self, query_path: str, default_params: dict, day_str: str) -> None:
+    def update(self, query_path: str, default_params: dict, last_day_str: str) -> None:
         """
         Updates data adding 1 day from Presto
 
         :param str query_path: Path of query that will be run
         :param dict default_params: Dictionary with default parameters to modify the query
-        :param str day_str: Date in '%Y-%m-%d' format used to filter the information that is going to be loaded
+        :param str last_day_str: Date in '%Y-%m-%d' format used to filter the information that is going to be loaded
         """
-        date_format = "%Y-%m-%d"
-        day = datetime.strptime(day_str, date_format)
-        next_day = day + timedelta(days=1)
-        next_day_str = next_day.strftime(date_format)
-        _time_stamps = [f"{day_str} {i:02d}" for i in range(24)] + [f"{next_day_str} 00"]
 
         params = default_params.copy()
 
+        date_format = "%Y-%m-%d"
+        last_day = datetime.strptime(last_day_str, date_format)
+        day = datetime.strptime(self.output["cday"].tail(1).values[0], date_format)
+        day += timedelta(days=1)
+
         logger.info("Iterating time stamps loading...")
-        for i in range(len(_time_stamps) - 1):
-            params.update({"start_date": _time_stamps[i], "end_date": _time_stamps[i + 1]})
-            query = load_format(query_path, params)
-            logger.info("Loading info for %s time stamp...", _time_stamps[i])
-            dataframe_temp = run_query(query=query, spark=self._spark)
-            logger.info("%s time stamp loaded.", _time_stamps[i])
-            self.output = pd.concat([self.output, dataframe_temp])
+        while day <= last_day:
+            day_str = day.strftime(date_format)
+            next_day = day + timedelta(days=1)
+            next_day_str = next_day.strftime(date_format)
+            _time_stamps = [f"{day_str} {i:02d}" for i in range(24)] + [f"{next_day_str} 00"]
+
+            for i in range(len(_time_stamps) - 1):
+                params.update({"start_date": _time_stamps[i], "end_date": _time_stamps[i + 1]})
+                query = load_format(query_path, params)
+                logger.info("Loading info for %s time stamp...", _time_stamps[i])
+                dataframe_temp = run_query(query=query, spark=self._spark)
+                logger.info("%s time stamp loaded.", _time_stamps[i])
+                self.output = pd.concat([self.output, dataframe_temp])
+
+            day += timedelta(days=1)
         logger.info("Iteration finished.")
 
-    def preprocess(self, columns: list) -> None:
+    def preprocess(self, columns_to_int: list, columns_to_drop_duplicates: list) -> None:
         """
         Removes nulls and transforms columns in integer type columns
 
-        :param str columns: Columns to be modified
+        :param str columns_to_int: Columns to be modified
         """
         logger.info("Removing nulls in columns...")
-        for column in columns:
-            self.output = self.output[~pd.isnull(self.output[column])]
+        self.output = self.output[(~pd.isnull(self.output[columns_to_int])).apply(all, axis=1)]
         logger.info("Nulls in columns removed.")
 
         logger.info("Transforming column data types...")
-        self.output[columns] = self.output[columns].astype(int)
+        self.output[columns_to_int] = self.output[columns_to_int].astype(int)
         logger.info("Column data types transformed.")
+
+        logger.info("Dropping duplicates...")
+        self.output = self.output.groupby(columns_to_drop_duplicates).agg(lambda x: x.values[-1]).reset_index()
+        logger.info("Duplicates dropped.")
 
     def save(self) -> None:
         """Saves the data as an artifact"""

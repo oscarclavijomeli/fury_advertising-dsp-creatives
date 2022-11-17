@@ -64,7 +64,7 @@ workflows:
 
                 task-image: # Configuration of task-image to be run (needs to be successfully prepared)
                     name: "daily_performance"
-                    version: "1.0.0"
+                    version: "1.0.1"
                     inputs: # Declaring task inputs
                         artifacts:
                             - name: "clicks_prints_per_day"
