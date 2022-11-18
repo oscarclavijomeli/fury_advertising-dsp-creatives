@@ -18,7 +18,7 @@ class BigQuery:
     def __init__(self) -> None:
         """Create an instance of SparkSQL connector"""
 
-        secret_b64 = get_secret("GCP_MLDADVERTISING")
+        secret_b64 = get_secret("SECRET_SB_DSP_CREAT")
         secret_decoded = base64.b64decode(secret_b64)
         gcp_creds = json.loads(secret_decoded)
         self.database: BigQueryConn = BigQueryConn(gcp_creds)
