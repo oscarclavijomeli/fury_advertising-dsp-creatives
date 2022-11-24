@@ -40,22 +40,6 @@ tasks:
   # ----------------------------------------------------------------------------
   # ----------------------------------------------------------------------------
   # ----------------------------------------------------------------------------
-
-  daily_performance:
-    type: fda.etl
-    
-    context:
-      entrypoint: src/app/data/creatives/tasks/daily_performance.py
-      flavor: small  # https://furydocs.io/molida/guide/#/flavors
-      
-    outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
-      - clicks_prints_per_day
-
-    inputs:
-      # No runtime arguments declared
-      artifacts:
-        - name: clicks_prints_per_day
-        
         
   beta_estimation:
     type: fda.etl
@@ -66,8 +50,3 @@ tasks:
       
     outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
       - test_cr_parameters
-
-    inputs:
-      # No runtime arguments declared
-      artifacts:
-        - name: clicks_prints_per_day

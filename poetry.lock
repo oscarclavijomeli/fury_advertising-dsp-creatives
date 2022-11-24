@@ -1597,6 +1597,19 @@ url = "https://pypi.artifacts.furycloud.io/simple"
 reference = "meli"
 
 [[package]]
+name = "types-pytz"
+version = "2022.6.0.1"
+description = "Typing stubs for pytz"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.artifacts.furycloud.io/simple"
+reference = "meli"
+
+[[package]]
 name = "types-retry"
 version = "0.9.9"
 description = "Typing stubs for retry"
@@ -1693,7 +1706,7 @@ reference = "meli"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "75d27ebae963bc2b6319e05133a5fdaa03eaa527b6b9bfcbeb3a29a313e0cb6a"
+content-hash = "286460f469a15634ddfb1e7086ffeee5fbd0e4d587a753948f0034de18b1b3c2"
 
 [metadata.files]
 attrs = [
@@ -2693,6 +2706,10 @@ tiger-python-helper = [
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+types-pytz = [
+    {file = "types-pytz-2022.6.0.1.tar.gz", hash = "sha256:d078196374d1277e9f9984d49373ea043cf2c64d5d5c491fbc86c258557bd46f"},
+    {file = "types_pytz-2022.6.0.1-py3-none-any.whl", hash = "sha256:bea605ce5d5a5d52a8e1afd7656c9b42476e18a0f888de6be91587355313ddf4"},
 ]
 types-retry = [
     {file = "types-retry-0.9.9.tar.gz", hash = "sha256:b1087b274680b542c796549e8488898d0b22cd89988ef1016ef56d4367ff4f41"},

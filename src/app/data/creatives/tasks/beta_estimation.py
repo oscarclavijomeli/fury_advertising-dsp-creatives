@@ -3,7 +3,7 @@
 from melitk import logging
 
 from app.data.creatives.utils.beta_estimator import BetaEstimator
-from app.conf.settings import ARTIFACT_NAME, OUTPUT_ARTIFACT_NAME, DIVIDER
+from app.conf.settings import OUTPUT_ARTIFACT_NAME, DIVIDER
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ def run_etl() -> None:
     """Creates output artifact"""
 
     logger.info("Downloading last version of the input artifact...")
-    beta_estimator = BetaEstimator(artifact_name=ARTIFACT_NAME)
+    beta_estimator = BetaEstimator()
 
     logger.info("Loading data from the last day...")
     beta_estimator.calculate_beta_parameters(divider=DIVIDER)
