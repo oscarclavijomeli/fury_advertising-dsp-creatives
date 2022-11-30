@@ -11,7 +11,7 @@ from melitk.fda2 import runtime
 
 from app.data.utils.bigquery import BigQuery
 from app.data.utils.load_query import load_format
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH, TIME_TO_UPDATE
+from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, TIME_TO_UPDATE
 
 logger = logging.getLogger(__name__)
 bigquery = BigQuery()
@@ -26,7 +26,7 @@ class BetaEstimator:
         """
 
         logger.info("Updating data...")
-        sql = load_format(path=QUERY_PATH, params=DEFAULT_PARAMS)
+        sql = load_format(path=QUERY_PATHS["insert"], params=DEFAULT_PARAMS)
         bigquery.run_query(sql)
         logger.info("Data updated.")
 
@@ -40,6 +40,11 @@ class BetaEstimator:
         timestamp = bigquery.run_query(sql).values[0, 0]
         if (datetime.now().astimezone(pytz.UTC) - timestamp.to_pydatetime()).seconds > TIME_TO_UPDATE:
             raise Exception(f"Data was not updated in the last {TIME_TO_UPDATE} seconds.")
+
+        logger.info("Grouping data...")
+        sql = load_format(path=QUERY_PATHS["group"], params={})
+        bigquery.run_query(sql)
+        logger.info("Data grouped.")
 
         self.input = bigquery.run_query("SELECT * FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS")
         logger.info("Input loaded.")

@@ -64,6 +64,6 @@ workflows:
                     
                 task-image: # Configuration of task-image to be run (needs to be successfully prepared)
                     name: "beta_estimation"
-                    version: "2.0.0"
+                    version: "2.0.1"
                         # No runtime arguments need to be declared for this task to run
                         
