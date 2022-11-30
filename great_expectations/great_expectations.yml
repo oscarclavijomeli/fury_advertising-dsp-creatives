@@ -1,0 +1,116 @@
+# Welcome to Great Expectations! Always know what to expect from your data.
+#
+# Here you can define datasources, batch kwargs generators, integrations and
+# more. This file is intended to be committed to your repo. For help with
+# configuration please:
+#   - Read our docs: https://docs.greatexpectations.io/docs/guides/connecting_to_your_data/connect_to_data_overview/#2-configure-your-datasource
+#   - Join our slack channel: http://greatexpectations.io/slack
+
+# config_version refers to the syntactic version of this config file, and is used in maintaining backwards compatibility
+# It is auto-generated and usually does not need to be changed.
+config_version: 3.0
+
+# Datasources tell Great Expectations where your data lives and how to get it.
+# You can use the CLI command `great_expectations datasource new` to help you
+# add a new datasource. Read more at https://docs.greatexpectations.io/docs/guides/connecting_to_your_data/connect_to_data_overview
+datasources:
+  track:
+    data_connectors:
+      pandas_runtime_connector:
+        class_name: RuntimeDataConnector
+        batch_identifiers:
+          - run_id
+        module_name: great_expectations.datasource.data_connector
+    class_name: Datasource
+    execution_engine:
+      class_name: PandasExecutionEngine
+      module_name: great_expectations.execution_engine
+    module_name: great_expectations.datasource
+  track2:
+    data_connectors:
+      bigquery_runtime_connector:
+        name: bigquery_runtime_connector
+        class_name: RuntimeDataConnector
+        batch_identifiers:
+          - run_id
+        module_name: great_expectations.datasource.data_connector
+      default_inferred_data_connector_name:
+        name: default_inferred_data_connector_name
+        include_schema_name: true
+        class_name: InferredAssetSqlDataConnector
+        module_name: great_expectations.datasource.data_connector
+    class_name: Datasource
+    execution_engine:
+      connection_string: bigquery://meli-bi-data/SBOX_DSPCREATIVOS?credentials_base64=ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAibWVsaS1iaS1kYXRhIiwKICAicHJpdmF0ZV9rZXlfaWQiOiAiNGY5MDAxY2U4NGIyOThjMWNiMzhhNjhhNTYwYzEzMGJhMWEwMWE2NSIsCiAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gUFJJVkFURSBLRVktLS0tLVxuTUlJRXZnSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2d3Z2dTa0FnRUFBb0lCQVFEVDYvMnlVdXJDNmQ1MFxuVDZKQmEwMFFmNkxjMU1nN2gxOFd5b0lxOVdiV3ZzR1VjWGtkRzRHMU1iSmdwWnZZeGt2cmNFY1M2ZTZXQklqdFxueVovdWdJbzJHSjYzRkJHQm9MMHpLa1AzQ1YzdzZWeEVCUjBnbnV3WStKRWVMYzRjNE5PNHNEVzc2YW0yK1RPdFxuS2VML3RBUVZ1RVdiL2RmVTZuQjBJUllLMnY3djRacmRsbkRYM09Ia0czRFl2TlhmUDNxQ2tRQnZKcW9Ha3hmWFxudFp2eGtYZXA4c3J3cy9jdFpvUXBHUzVIbWZZbGUwRlB5UzNBK01wQTVzNFMra3laQ3dzWWEvcXBkYnRNSFNycVxudG9VRTYycSs5d29kbDg2aFFjZHcwVUpGZlFQd0trNkVXOFZPWjE0TEtLaDNFaVhsT080VzVldEVnN2JmZXFGaVxuT3hFL0F1dEhBZ01CQUFFQ2dnRUFJd3d2MEVxTFBjSDh3c0theEhQdzhrNFJpckQ4RG5CRVp4b0ZyZ0lZeUdJU1xuMUxCeGhjRlRVYnFPMUJIL2RMblN1M1M5cEdDZ3p4bWY1YWVITmlQMjk1eFp2MUJuMXNiVkUzMmxjTmtST3JMMVxuU2VDSW9TajNSZWZ4NUFwU1FJOWtKSEtyNkZCciszRTZQU1Nrd0lJdWZNTVZiQWR1cHUxQXZNdnQvOHlaQmVXK1xuQmF4OU5Lb0pqZDNoSjNtZE9hWFVCeHJWdzlwUG5aOG1nWDdKTlU5cjNVUkpQRlIzYjYzYUplcmp6S2VBMDZzNlxudTZXU0t1V1Vwa3NrRmE0WEtZYWZLMnp2a0dtZ1pKdklNbE56WVJRNjNTbjVxZzJSU0t6Ri9SZlFhZzNRUWpROVxuL1NhV2VvNkFkWkZ3MnVjbW5CT1FPWjRBTWR2Q2pDcmc0SGVQbkN2cE1RS0JnUUQ1TTZMRWJldlNsbE41aFUza1xuTVFxVWJVR0tJVFk2eFd4dkdXK3NyeEx1RVpJNEVYWE1ueDR4aE83dHNrZVN4c2ZITi91T0xOcmh6N3dUZW83ZFxuVFIreDNncUZEUGlDWWlTVFhLeUprMm54WGRXOTRBMkJ4czZCazN1SVhjYXhlT0VnbStYeGpSYUtDYVNjS3FVdVxuTjVBb0M2OWMvME5IWml0UXFYYnlSRWtGbHdLQmdRRFp0QUJ1VFg5OTlxWjhKMVJVKzRZWk5aRHFNMit5ZlM5OVxuWmVUWGdoQW96MU1RTk1tME4vaFQzL3NGRzd1NFJDTytKTWxwWW1kYUN3UjYzOHN1SGFSYkFwelF3elYxaEJ1WlxueU1uOSsxVzFZeVE3RG5rUDA1eHdGbTJJMDdCMUJWaG95MFBHUGNwOTZVTE5ESmdEaEtiWGJHbnh4V0IwTXhFeFxuNmV0MUhUN2QwUUtCZ0ZsQVZSdGxBd0Q1Tmd4ZjRmWElXckd1TDdyNUNpTWljaU9ZU0piZ1hUZEdzOGZBK1IvQVxuSFdBKzdCUFZ0aXlyWlFIRTJ5T2dqUVF6RW5rbmUrTm1xK05ZVXd3MENRMHBlVkFOOFAyVS9teWozdG1TVlVRVlxub0FCb2dlWGxNRFIveHFHWE5GTys1RU9zRUhpZURXcndHNEU4TGlKd2lmZ1liNHNFSnNXK0R5a2hBb0dCQUxoZlxuTUlvNkNnSlU5SlJxL29ubVpxQk05RWpVZlFGdDhkMUNnVGRleUc2M2Z3Slhvb2VGYTBNbGlzSzl4UkorYXNMclxuQnNUQWVRVVNGWjQya0Myakh3R1F5ZHducHN1NnNXRmhZbWcrQmsxVEJHa2JqYjJ3bW1sM0pSYmZLUzlCOHFqMVxubEpWODJWUWZTOXE2a3JkUURiaWQ4VyszbUVOd3lGdzhYcFBWeTlzeEFvR0JBTXcvSmpvbDBmeGtqQWtDV3ZtRlxuVTRvYzBxa1B5OU5RQXFna1dHS3ZPSU9pTnFJTkNhZSt6Q0hmTUZrTXo1aWFUaCtublNpUnJTdm5nVzMrN3VUZlxuRlFGcWQ2Ny9PTzRnKzY3cXIveS9WcDNFbkYwM2oyN2RGbVFuUnVOVzZXSlM4cTdYZ0NjTkRvU04vTndaK2hVNVxuOFJQdmNDWExWeU5nSGhFT29NMmpncWlRXG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iLAogICJjbGllbnRfZW1haWwiOiAiZHNwY3JlYXRpdm9zLWFkbWluQG1lbGktYmktZGF0YS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgImNsaWVudF9pZCI6ICIxMDEzNjEyODI4MTI2NDM3NjU3MDUiLAogICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsCiAgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjEvY2VydHMiLAogICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2RzcGNyZWF0aXZvcy1hZG1pbiU0MG1lbGktYmktZGF0YS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQo=
+      class_name: SqlAlchemyExecutionEngine
+      module_name: great_expectations.execution_engine
+    module_name: great_expectations.datasource
+config_variables_file_path: uncommitted/config_variables.yml
+
+# The plugins_directory will be added to your python path for custom modules
+# used to override and extend Great Expectations.
+plugins_directory: plugins/
+
+stores:
+# Stores are configurable places to store things like Expectations, Validations
+# Data Docs, and more. These are for advanced users only - most users can simply
+# leave this section alone.
+#
+# Three stores are required: expectations, validations, and
+# evaluation_parameters, and must exist with a valid store entry. Additional
+# stores can be configured for uses such as data_docs, etc.
+  expectations_store:
+    class_name: ExpectationsStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: expectations/
+
+  validations_store:
+    class_name: ValidationsStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/validations/
+
+  evaluation_parameter_store:
+    class_name: EvaluationParameterStore
+  checkpoint_store:
+    class_name: CheckpointStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      suppress_store_backend_id: true
+      base_directory: checkpoints/
+
+  profiler_store:
+    class_name: ProfilerStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      suppress_store_backend_id: true
+      base_directory: profilers/
+
+expectations_store_name: expectations_store
+validations_store_name: validations_store
+evaluation_parameter_store_name: evaluation_parameter_store
+checkpoint_store_name: checkpoint_store
+
+data_docs_sites:
+  # Data Docs make it simple to visualize data quality in your project. These
+  # include Expectations, Validations & Profiles. The are built for all
+  # Datasources from JSON artifacts in the local repo including validations &
+  # profiles from the uncommitted directory. Read more at https://docs.greatexpectations.io/docs/terms/data_docs
+  local_site:
+    class_name: SiteBuilder
+    show_how_to_buttons: true
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/data_docs/local_site/
+    site_index_builder:
+      class_name: DefaultSiteIndexBuilder
+
+anonymous_usage_statistics:
+  enabled: true
+  data_context_id: 69ce109f-2a1b-49c4-ab4c-a11827e1a02d
+notebooks:
+include_rendered_content:
+  expectation_suite: false
+  globally: false
+  expectation_validation_result: false

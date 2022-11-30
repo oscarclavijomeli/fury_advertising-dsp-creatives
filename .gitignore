@@ -85,3 +85,6 @@ conf/local/
 # data
 *.csv
 logs.*
+notebooks/test_load_artifact.ipynb
+great_expectations/expectations/*.json
+great_expectations/checkpoints/*

@@ -8,14 +8,23 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-fda-toolkit = "^1.*"
+python = ">=3.7,<=3.9"
+fda-toolkit = "^1.0.*"
+google-cloud-bigquery="3.1.0"
+google-cloud-bigquery-datatransfer="3.6.1"
+httplib2="0.20.4"
 matplotlib = "3.5"
-"melitk.connectors" = {extras = ["complete"], version = "^4.4.6"}
+"melitk.connectors" = {extras = ["bigquery"], version = "^4.4.1"}
+"melitk.metrics" = "^2.2.9"
 pandas = "<=1.4.0"
 protobuf = "3.20.x"
 thrift = "0.13.0"
+pytz = "^2022.1"
 retry = "^0.9.2"
+callee = "^0.3.1"
+great-expectations = "^0.15.19"
+sqlalchemy-bigquery = "^1.4.4"
+pybigquery = "^0.10.2"
 tiger-python-helper = "^0.7.1"
 types-retry = "^0.9.9"
 importlib-metadata = "<5.0.0"

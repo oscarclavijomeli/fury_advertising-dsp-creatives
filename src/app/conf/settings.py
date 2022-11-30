@@ -12,3 +12,7 @@ QUERY_PATH = "src/app/data/creatives/queries/daily_insert.sql"
 OUTPUT_ARTIFACT_NAME = "test_cr_parameters"
 DIVIDER = 24
 TIME_TO_UPDATE = 2 * 60 * 60
+
+PROJECT_ID = {"test": "meli-bi-data", "prod": "meli-bi-data"}
+DATASET_ID = {"test": "SBOX_DSPCREATIVOS", "prod": "SBOX_DSPCREATIVOS"}
+SECRET_NAME = {"test": "SECRET_SB_DSP_CREAT", "prod": "SECRET_SB_DSP_CREAT"}
