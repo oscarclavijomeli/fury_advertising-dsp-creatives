@@ -86,5 +86,7 @@ conf/local/
 *.csv
 logs.*
 notebooks/test_load_artifact.ipynb
-great_expectations/expectations/*.json
-great_expectations/checkpoints/*
+great_expectations/*
+
+# test notebooks
+test_*.ipynb
