@@ -50,3 +50,10 @@ tasks:
       
     outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
       - test_cr_parameters
+
+  sanity_checks:
+    type: fda.etl
+    
+    context:
+      entrypoint: src/app/data/creatives/tasks/sanity_cheks.py
+      flavor: small  # https://furydocs.io/molida/guide/#/flavors

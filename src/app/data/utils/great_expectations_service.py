@@ -3,6 +3,7 @@ Creates great expectations service
 """
 
 import datetime
+import os
 import pathlib
 import logging
 import copy
@@ -39,7 +40,7 @@ class DataQuality:
         :param str datasource_name: ...
         ...
         """
-
+        os.system("echo yes | great_expectations init")  # nosec
         self.environment = environment
         self.root_directory = f"{pathlib.Path(__file__).absolute().parents[1]}/great_expectations"
         self.datasource_name = datasource_name
@@ -196,12 +197,10 @@ data_connectors:
 
             for item in value["validation_result"]["results"]:
 
-                expectation["column"] = item["expectation_config"]["kwargs"]["column"]
                 expectation["expectation_type"] = item["expectation_config"]["expectation_type"]
                 expectation["success"] = item["success"]
 
                 kwargs = item["expectation_config"]["kwargs"]
-                kwargs.pop("column")
                 kwargs.pop("batch_id")
 
                 if len(kwargs) > 0:

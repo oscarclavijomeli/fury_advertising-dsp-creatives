@@ -9,6 +9,8 @@ THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42
 
 DEFAULT_PARAMS = {"end_date": date.today().strftime("%Y-%m-%d"), "site_id": "MLA", "click_window": 24 * 60 * 60}
 QUERY_PATHS = {"insert": "src/app/data/creatives/queries/daily_insert.sql", "group": "src/app/data/creatives/queries/group.sql"}
+QUERY_PATH_GREAT = "src/app/data/creatives/queries/daily_great_expectations.sql"
+QUERY_PATH_INSERT_DATA = "src/app/data/creatives/queries/data_validation_insert.sql"
 OUTPUT_ARTIFACT_NAME = "test_cr_parameters"
 DIVIDER = 24
 TIME_TO_UPDATE = 2 * 60 * 60

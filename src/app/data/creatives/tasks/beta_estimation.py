@@ -26,6 +26,9 @@ def run_etl() -> None:
         logger.info("Loading data from the last day...")
         beta_estimator.calculate_beta_parameters(divider=DIVIDER)
 
+        logger.info("Applying sanity checks...")
+        beta_estimator.run_sanity_checks()
+
         logger.info("Transforming id columns in integers...")
         beta_estimator.dataframe2dictionary()
 

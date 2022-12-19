@@ -10,8 +10,10 @@ from melitk import logging
 from melitk.fda2 import runtime
 
 from app.data.utils.bigquery import BigQuery
+from app.data.utils.params_bigquery import ParamsBigquery
+from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, TIME_TO_UPDATE
+from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, TIME_TO_UPDATE, QUERY_PATH_INSERT_DATA
 
 logger = logging.getLogger(__name__)
 bigquery = BigQuery()
@@ -88,6 +90,35 @@ class BetaEstimator:
             .reset_index(drop=True)
         )
         logger.info("Alpha and beta parameters calculated for a new creative.")
+
+    def run_sanity_checks(self) -> None:
+        """Applies great expectation to the output dataframe"""
+
+        logger.info("Creates great expectations...")
+        dq_checker = DataQuality("track2", "Pandas", self.output, "test")
+
+        validator = dq_checker.get_validator()
+
+        validator.expect_column_values_to_be_of_type("campaign_id", "int")
+        validator.expect_column_values_to_be_of_type("line_item_id", "int")
+        validator.expect_column_values_to_be_of_type("creative_id", "int")
+        validator.expect_column_values_to_be_of_type("alpha", "float")
+        validator.expect_column_values_to_be_of_type("beta", "float")
+        validator.expect_column_values_to_not_be_null("campaign_id")
+        validator.expect_column_values_to_not_be_null("line_item_id")
+        validator.expect_column_values_to_not_be_null("creative_id")
+        validator.expect_column_values_to_not_be_null("alpha")
+        validator.expect_column_values_to_not_be_null("beta")
+        validator.expect_compound_columns_to_be_unique(["campaign_id", "line_item_id", "creative_id"])
+        validator.save_expectation_suite()
+
+        results = dq_checker.validate_data()
+
+        params = ParamsBigquery(results, "dsp_creativos_artifact_data", datetime.now()).create_params()
+
+        query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
+
+        BigQuery().run_query(query)
 
     def dataframe2dictionary(self) -> None:
         """Transforms output type from pandas.DataFrame to dictionary"""
