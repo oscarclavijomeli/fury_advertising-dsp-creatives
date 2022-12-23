@@ -56,14 +56,13 @@ workflows:
                               
             beta_estimation:
                 description: "Calculates alpha and beta parameters from the last version of clicks_prints_per_day artifact."
-                
+
                 outputs:
                     artifacts:
-                        -   name: "test_cr_parameters"
-                            version: "2.0.{{TASK.TASK_COUNT}}-MLA-Production"
-                    
+                        -   name: "test_ctr_beta_parameters"
+                            version: "0.0.{{TASK.TASK_COUNT}}-MLA-Test"
+
                 task-image: # Configuration of task-image to be run (needs to be successfully prepared)
                     name: "beta_estimation"
-                    version: "2.0.1"
+                    version: "0.0.8-test"
                         # No runtime arguments need to be declared for this task to run
-                        

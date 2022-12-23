@@ -7,14 +7,14 @@ from datetime import datetime
 class ParamsBigquery:
     "Generate de date to insert into bigquery"
 
-    def __init__(self, results: dict, process: str, date: datetime) -> None:
+    def __init__(self, results: dict, process: str, datetime_param: datetime) -> None:
         """
         Gets information to create params
         """
 
         self.results = results
         self.process = process
-        self.date = date.strftime("%Y-%m-%d")
+        self.date = datetime_param.strftime("%Y-%m-%d")
 
     def create_params(self) -> dict:
         """Create params with the data"""

@@ -2,19 +2,23 @@
 General app's level configuration items.
 """
 
-from datetime import date
-
 MODEL_HYPER_PARAMETERS = {"foo": "bar"}
 THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42
 
-DEFAULT_PARAMS = {"end_date": date.today().strftime("%Y-%m-%d"), "site_id": "MLA", "click_window": 24 * 60 * 60}
+DEFAULT_PARAMS = {
+    "start_date": "2022-12-07",
+    "site_id": "MLA",
+    "time_zone": "-04",
+    "click_window": 24 * 60 * 60,
+    "artifact_name": "ctr_beta_parameters",
+    "env": "test",
+    "divider": 1,
+    "epsilon": 0.2,
+    "application": "advertising-dsp-creatives",
+}
 QUERY_PATHS = {"insert": "src/app/data/creatives/queries/daily_insert.sql", "group": "src/app/data/creatives/queries/group.sql"}
 QUERY_PATH_GREAT = "src/app/data/creatives/queries/daily_great_expectations.sql"
 QUERY_PATH_INSERT_DATA = "src/app/data/creatives/queries/data_validation_insert.sql"
-OUTPUT_ARTIFACT_NAME = "test_cr_parameters"
-DIVIDER = 24
-TIME_TO_UPDATE = 2 * 60 * 60
-TAGS = {"application": "advertising-dsp-creatives", "env": "prod"}
 PROJECT_ID = {"test": "meli-bi-data", "prod": "meli-bi-data"}
 DATASET_ID = {"test": "SBOX_DSPCREATIVOS", "prod": "SBOX_DSPCREATIVOS"}
 SECRET_NAME = {"test": "SECRET_SB_DSP_CREAT", "prod": "SECRET_SB_DSP_CREAT"}

@@ -1,4 +1,9 @@
-CREATE TABLE meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_DAY
+DECLARE SITE_ID STRING DEFAULT '{site_id}';
+DECLARE TIME_ZONE STRING DEFAULT '{time_zone}';
+DECLARE START_DATE DATE DEFAULT '{start_date}';
+DECLARE CLICK_WINDOW INT64 DEFAULT {click_window};
+
+CREATE OR REPLACE TABLE meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR
 PARTITION BY ds
 CLUSTER BY site
 AS
@@ -15,10 +20,9 @@ WITH prints AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= '2022-09-01'
-        AND `ds` < '2022-11-23'
+        `ds` >= START_DATE
         AND `event` = 'display_prints'
-        AND site = 'MLA'
+        AND site = SITE_ID
         AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
         AND json_extract_scalar(event_data, '$.valid')= 'true'
         AND (NOT
@@ -37,10 +41,9 @@ clicks AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= '2022-09-01'
-        AND `ds` < "2022-11-23"
+        `ds` >= START_DATE
         AND `event` = 'display_clicks'
-        AND site = 'MLA'
+        AND site = SITE_ID
         AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
         AND (NOT
             REGEXP_CONTAINS(LOWER(`device`.user_agent),
@@ -51,12 +54,13 @@ prints_clicks AS (
     SELECT DISTINCT
         prints.id AS id,
         prints.ds AS ds,
+        RIGHT(CONCAT('0', EXTRACT(HOUR FROM prints.ts AT TIME ZONE TIME_ZONE)), 2) AS hour,
         prints.site,
         CAST(
             json_extract_scalar(prints.event_data, '$.campaign_id') AS INT64
         ) AS campaign_id,
         CAST(json_extract_scalar(prints.event_data, '$.line_item_id') AS INT64) AS line_item_id,
-        CAST(SUBSTR(json_extract_scalar(prints.event_data, '$.creative_id'), 1, 4) AS INT64) AS creative_id,
+        CAST(json_extract_scalar(prints.event_data, '$.creative_id') AS INT64) AS creative_id,
         CASE
             WHEN clicks.ds IS NOT NULL THEN 1 
             ELSE 0
@@ -65,17 +69,35 @@ prints_clicks AS (
     LEFT JOIN clicks
     ON prints.print_id = clicks.print_id
         AND ((prints.user_id = clicks.user_id) OR clicks.user_id IS NULL)
-        AND TIMESTAMP_DIFF(clicks.ts, prints.ts, SECOND) <= 86400
+        AND TIMESTAMP_DIFF(clicks.ts, prints.ts, SECOND) <= CLICK_WINDOW
         AND prints.site = clicks.site
 )
 
 SELECT
     ds,
+    hour,
     site,
     campaign_id,
     line_item_id,
     creative_id,
+    CAST(NULL AS STRING) AS sample_type,
     COUNT(*) AS n_prints,
     SUM(target) AS n_clicks
 FROM prints_clicks
-GROUP BY 1,2,3,4,5
+GROUP BY 1,2,3,4,5,6,7
+;
+
+CREATE OR REPLACE TABLE meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR AS
+SELECT SITE_ID AS site, MAX(CONCAT(ds, 'T', hour)) AS ds_hour
+FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR
+WHERE site = SITE_ID
+;
+
+DELETE meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR a
+WHERE a.site = SITE_ID
+    AND CONCAT(a.ds, 'T', a.hour) = (
+    SELECT MAX(ds_hour)
+    FROM meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
+    WHERE site = SITE_ID
+)
+;

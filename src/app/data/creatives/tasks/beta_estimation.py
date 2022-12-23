@@ -7,11 +7,20 @@ from retry import retry
 
 from melitk import logging
 from melitk import metrics
+from melitk.fda2 import runtime
 
+from app.data.utils.load_query import load_format
 from app.data.creatives.utils.beta_estimator import BetaEstimator
-from app.conf.settings import OUTPUT_ARTIFACT_NAME, DIVIDER, TAGS
+from app.data.utils.bigquery import BigQuery
+from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH_GREAT
 
 logger = logging.getLogger(__name__)
+bigquery = BigQuery()
+
+PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
+OUTPUT_ARTIFACT_NAME = f"{PARAMS['env']}_{PARAMS['artifact_name']}"
+DIVIDER = PARAMS["divider"]
+TAGS = {"application": PARAMS["application"], "env": PARAMS["env"]}
 
 
 @retry(tries=3, backoff=60)
@@ -20,20 +29,25 @@ def run_etl() -> None:
 
     total_start_time = time.perf_counter()
     try:
-        logger.info("Downloading last version of the input artifact...")
+        logger.info("Initialize beta Estimator.")
         beta_estimator = BetaEstimator()
 
-        logger.info("Loading data from the last day...")
-        beta_estimator.calculate_beta_parameters(divider=DIVIDER)
+        logger.info("Applying sanity checks to initial data.")
+        sql = load_format(path=QUERY_PATH_GREAT, params=PARAMS)
+        initial_data = bigquery.run_query(sql)
+        beta_estimator.run_sanity_checks(dataframe=initial_data)
 
-        logger.info("Applying sanity checks...")
-        beta_estimator.run_sanity_checks()
+        logger.info("Computing beta parameters.")
+        creatives, line_items = beta_estimator.calculate_beta_parameters(divider=DIVIDER)
 
-        logger.info("Transforming id columns in integers...")
-        beta_estimator.dataframe2dictionary()
+        logger.info("Applying sanity checks to final data.")
+        beta_estimator.run_sanity_checks(dataframe=creatives)
+
+        logger.info("Formating data to json.")
+        creative_list = beta_estimator.dataframe2json(creatives=creatives, line_items=line_items)
 
         logger.info("Saving new version of the artifact...")
-        beta_estimator.save(artifact_name=OUTPUT_ARTIFACT_NAME)
+        beta_estimator.save(creative_list=creative_list, artifact_name=OUTPUT_ARTIFACT_NAME)
 
         logger.info("Output artifact created.")
         metrics.record_count("advertising.dsp.etl.beta_estimation.success", tags=TAGS)

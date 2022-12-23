@@ -47,13 +47,33 @@ tasks:
     context:
       entrypoint: src/app/data/creatives/tasks/beta_estimation.py
       flavor: small  # https://furydocs.io/molida/guide/#/flavors
-      
-    outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
-      - test_cr_parameters
-
-  sanity_checks:
-    type: fda.etl
     
-    context:
-      entrypoint: src/app/data/creatives/tasks/sanity_cheks.py
-      flavor: small  # https://furydocs.io/molida/guide/#/flavors
+    inputs:
+      runtime:
+        - name: site_id
+          type: str
+          default: MLA
+        - name: time_zone
+          type: str
+          default: -04
+        - name: click_window
+          type: int
+          default: 86400
+        - name: artifact_name
+          type: str
+          default: ctr_beta_parameters
+        - name: env
+          type: str
+          default: test
+        - name: divider
+          type: float
+          default: 1.0
+        - name: epsilon
+          type: float
+          default: 0.2
+        - name: application
+          type: str
+          default: advertising-dsp-creatives
+
+    outputs:  # https://furydocs.io/molida/guide/#/semantic_tasks?id=outputs
+      - test_ctr_beta_parameters

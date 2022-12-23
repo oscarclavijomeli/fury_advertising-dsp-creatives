@@ -2,8 +2,8 @@
 
 import json
 from datetime import datetime
-import pytz
 
+from typing import Tuple, Union, Dict, List
 import pandas as pd
 
 from melitk import logging
@@ -13,10 +13,13 @@ from app.data.utils.bigquery import BigQuery
 from app.data.utils.params_bigquery import ParamsBigquery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, TIME_TO_UPDATE, QUERY_PATH_INSERT_DATA
+from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, QUERY_PATH_INSERT_DATA
 
 logger = logging.getLogger(__name__)
 bigquery = BigQuery()
+
+PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
+EPSILON = PARAMS["epsilon"]
 
 
 class BetaEstimator:
@@ -28,32 +31,20 @@ class BetaEstimator:
         """
 
         logger.info("Updating data...")
-        sql = load_format(path=QUERY_PATHS["insert"], params=DEFAULT_PARAMS)
+        sql = load_format(path=QUERY_PATHS["insert"], params=PARAMS)
         bigquery.run_query(sql)
         logger.info("Data updated.")
-
-        logger.info("Loading input.")
-
-        sql = """
-        SELECT TIMESTAMP_MILLIS(last_modified_time)
-        FROM `meli-bi-data.SBOX_DSPCREATIVOS.__TABLES__`
-        WHERE table_id = "BQ_PRINTS_CLICKS_PER_DAY"
-        """
-        timestamp = bigquery.run_query(sql).values[0, 0]
-        if (datetime.now().astimezone(pytz.UTC) - timestamp.to_pydatetime()).seconds > TIME_TO_UPDATE:
-            raise Exception(f"Data was not updated in the last {TIME_TO_UPDATE} seconds.")
 
         logger.info("Grouping data...")
         sql = load_format(path=QUERY_PATHS["group"], params={})
         bigquery.run_query(sql)
         logger.info("Data grouped.")
 
+        logger.info("Loading input...")
         self.input = bigquery.run_query("SELECT * FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS")
         logger.info("Input loaded.")
 
-        self.output = pd.DataFrame()
-
-    def calculate_beta_parameters(self, divider: float) -> None:
+    def calculate_beta_parameters(self, divider: float) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Calculates alpha and beta parameters
 
@@ -62,86 +53,124 @@ class BetaEstimator:
 
         # First, calculate the parameters for existing creative ids
         logger.info("Calculating alpha and beta parameters for existing creatives...")
-        beta_parameters = self.input.copy()
-        beta_parameters["alpha"] = beta_parameters["n_clicks"] + 1
-        beta_parameters["beta"] = beta_parameters["n_prints"] - beta_parameters["n_clicks"] + 1
+        creatives = self.input.copy()
+        creatives["alpha"] = creatives["n_clicks"] + 1
+        creatives["beta"] = creatives["n_prints"] - creatives["n_clicks"] + 1
         logger.info("Alpha and beta parameters calculated for existing creatives.")
 
         # Second, calculate the default parameters for new creatives
         logger.info("Calculating alpha and beta parameters for a new creative...")
-        grouped_by_lineitem = beta_parameters.groupby(["campaign_id", "line_item_id"])
-        default_beta_parameters = (
-            grouped_by_lineitem.agg({"creative_id": "count", "n_clicks": "sum", "n_prints": "sum", "days": "max"})
+        grouped_by_lineitem = creatives.groupby(["campaign_id", "line_item_id"])
+        line_items = (
+            grouped_by_lineitem.agg({"creative_id": "count", "n_clicks": "sum", "n_prints": "sum", "hours": "max"})
             .reset_index()
             .rename({"creative_id": "n_creatives"}, axis=1)
         )
-        default_beta_parameters["alpha"] = (
-            default_beta_parameters["n_clicks"] / (default_beta_parameters["n_creatives"] * default_beta_parameters["days"] * divider) + 1
-        )
-        default_beta_parameters["beta"] = (default_beta_parameters["n_prints"] - default_beta_parameters["n_clicks"]) / (
-            default_beta_parameters["n_creatives"] * default_beta_parameters["days"] * divider
+        line_items["alpha"] = line_items["n_clicks"] / (line_items["n_creatives"] * line_items["hours"] * divider) + 1
+        line_items["beta"] = (line_items["n_prints"] - line_items["n_clicks"]) / (
+            line_items["n_creatives"] * line_items["hours"] * divider
         ) + 1
-        default_beta_parameters["creative_id"] = "default"
+        line_items["epsilon"] = EPSILON
 
-        return_columns = ["campaign_id", "line_item_id", "creative_id", "alpha", "beta"]
-        self.output = (
-            pd.concat([beta_parameters[return_columns], default_beta_parameters[return_columns]])
-            .sort_values(by=["campaign_id", "line_item_id", "creative_id"])
-            .reset_index(drop=True)
-        )
         logger.info("Alpha and beta parameters calculated for a new creative.")
+        return creatives, line_items
 
-    def run_sanity_checks(self) -> None:
+    def run_sanity_checks(self, dataframe: pd.DataFrame) -> None:
         """Applies great expectation to the output dataframe"""
 
         logger.info("Creates great expectations...")
-        dq_checker = DataQuality("track2", "Pandas", self.output, "test")
+
+        if "hour" in dataframe.columns:
+            dq_checker = DataQuality(datasource_name="track1", conexion_type="Pandas", artifact=dataframe, environment=PARAMS["env"])
+        else:
+            dq_checker = DataQuality(datasource_name="track2", conexion_type="Pandas", artifact=dataframe, environment=PARAMS["env"])
 
         validator = dq_checker.get_validator()
+
+        if "hour" in dataframe.columns:
+            validator.expect_column_values_to_be_of_type("hour", "str")
+            validator.expect_column_values_to_be_of_type("int_hour", "int")
+            validator.expect_column_values_to_be_of_type("site", "str")
+            validator.expect_column_values_to_be_of_type("n_prints", "int")
+            validator.expect_column_values_to_be_of_type("n_clicks", "int")
+            validator.expect_column_values_to_not_be_null("site")
+            validator.expect_column_values_to_not_be_null("n_prints")
+            validator.expect_column_values_to_not_be_null("n_clicks")
+            validator.expect_column_values_to_be_between("n_prints", min_value=0)
+            validator.expect_column_values_to_be_between("n_clicks", min_value=0)
+            validator.expect_column_values_to_be_between("int_hour", min_value=0, max_value=23)
+            validator.expect_column_pair_values_A_to_be_greater_than_B("n_prints", "n_clicks", or_equal=True)
+            validator.expect_compound_columns_to_be_unique(["ds", "hour", "campaign_id", "line_item_id", "creative_id"])
+        else:
+            validator.expect_column_values_to_be_of_type("alpha", "int")
+            validator.expect_column_values_to_be_of_type("beta", "int")
+            validator.expect_column_values_to_not_be_null("alpha")
+            validator.expect_column_values_to_not_be_null("beta")
+            validator.expect_column_values_to_be_between("alpha", min_value=1)
+            validator.expect_column_values_to_be_between("beta", min_value=1)
+            validator.expect_compound_columns_to_be_unique(["campaign_id", "line_item_id", "creative_id"])
 
         validator.expect_column_values_to_be_of_type("campaign_id", "int")
         validator.expect_column_values_to_be_of_type("line_item_id", "int")
         validator.expect_column_values_to_be_of_type("creative_id", "int")
-        validator.expect_column_values_to_be_of_type("alpha", "float")
-        validator.expect_column_values_to_be_of_type("beta", "float")
         validator.expect_column_values_to_not_be_null("campaign_id")
         validator.expect_column_values_to_not_be_null("line_item_id")
         validator.expect_column_values_to_not_be_null("creative_id")
-        validator.expect_column_values_to_not_be_null("alpha")
-        validator.expect_column_values_to_not_be_null("beta")
-        validator.expect_compound_columns_to_be_unique(["campaign_id", "line_item_id", "creative_id"])
         validator.save_expectation_suite()
 
         results = dq_checker.validate_data()
 
-        params = ParamsBigquery(results, "dsp_creativos_artifact_data", datetime.now()).create_params()
+        if "hour" in dataframe.columns:
+            process = "dsp_creativos_init_data"
+        else:
+            process = "dsp_creativos_artifact_data"
 
+        params = ParamsBigquery(results=results, process=process, datetime_param=datetime.now()).create_params()
         query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
 
-        BigQuery().run_query(query)
+        bigquery.run_query(query)
 
-    def dataframe2dictionary(self) -> None:
+    def dataframe2json(
+        self, creatives: pd.DataFrame, line_items: pd.DataFrame
+    ) -> List[Dict[str, Union[int, List[Dict[str, Union[int, List[Dict[str, int]], Dict[str, float], float]]]]]]:
         """Transforms output type from pandas.DataFrame to dictionary"""
 
-        logger.info("Transforming output to dictionary...")
-        creative_dictionary = self.output.groupby(["campaign_id", "line_item_id"])[["creative_id", "alpha", "beta"]].apply(
+        creative_list = creatives.groupby(["campaign_id", "line_item_id"])[["creative_id", "alpha", "beta"]].apply(
             lambda x: x.set_index("creative_id").to_dict(orient="index")
         )
-        lineitem_dictionary = (
-            creative_dictionary.reset_index()
-            .set_index("line_item_id")
-            .groupby(
-                [
-                    "campaign_id",
+        creative_list = pd.DataFrame(
+            creative_list.map(
+                lambda x: [{"creative_id": int(key), "alpha": value["alpha"], "beta": value["beta"]} for key, value in x.items()]
+            )
+        )
+
+        creative_list = creative_list.rename({0: "creatives"}, axis=1).join(line_items.set_index(["campaign_id", "line_item_id"]))
+
+        creative_list = (
+            creative_list.reset_index()
+            .groupby("campaign_id")[["line_item_id", "creatives", "alpha", "beta", "epsilon"]]
+            .apply(lambda x: x.set_index("line_item_id").to_dict(orient="index"))
+        )
+        creative_list = pd.DataFrame(
+            creative_list.map(
+                lambda x: [
+                    {
+                        "line_item": int(key),
+                        "creatives": value["creatives"],
+                        "default": {"alpha": value["alpha"], "beta": value["beta"]},
+                        "epsilon": value["epsilon"],
+                    }
+                    for key, value in x.items()
                 ]
             )
-            .agg(dict)
         )
-        campaign_dictionary = {row[0]: row[1].values[0] for row in lineitem_dictionary.iterrows()}
-        self.output = campaign_dictionary
-        logger.info("Output transformed.")
 
-    def save(self, artifact_name: str) -> None:
+        creative_list = creative_list.rename({0: "line_items"}, axis=1).to_dict(orient="index")
+        result = [{"campaign_id": int(key), "line_items": value["line_items"]} for key, value in creative_list.items()]
+
+        return result
+
+    def save(self, creative_list: list, artifact_name: str) -> None:
         """
         Saves the alpha and beta parameters as an artifact
 
@@ -150,6 +179,6 @@ class BetaEstimator:
 
         logger.info("Saving info as an artifact...")
         # serialize
-        data_bytes = json.dumps(self.output).encode("utf-8")
+        data_bytes = json.dumps(creative_list).encode("utf-8")
         runtime.outputs[artifact_name].save_from_bytes(data=data_bytes)
         logger.info("Artifact saved.")

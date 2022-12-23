@@ -1,75 +1,32 @@
-    WITH prints AS (
-        SELECT
-            id,
-            event_data,
-            `ds`,
-            site,
-             json_extract_scalar(`event_data`, '$.print_id') AS print_id,
-            `user`.`user_id` AS `user_id`,
-            CAST(REPLACE(`server_timestamp`, "T", ' ') AS TIMESTAMP) AS ts
-        FROM
-            meli-bi-data.MELIDATA.ADVERTISING
-        WHERE
-            `ds` >= '{ds}'
-            AND `ds` < '{end_date}'
-            AND `event` = 'display_prints'
-            AND site = '{site_id}'
-            AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
-            AND json_extract_scalar(event_data, '$.valid')= 'true'
-            AND (NOT
-                REGEXP_CONTAINS(LOWER(`device`.user_agent),
-                '.*(libwww|wget|lwp|damnBot|bbbike|java|spider|crawl|slurp|bot|feedburner|googleimageproxy|google web preview).*')
-            )
-    ),
-    clicks AS (
-        SELECT
-            `ds`,
-            site,
-            `user`.`user_id` AS `user_id`,
-            json_extract_scalar(`event_data`, '$.print_id') AS print_id,
-            json_extract_scalar(`event_data`, '$.click_id') AS click_id,
-            CAST(REPLACE(`server_timestamp`, "T", ' ') AS TIMESTAMP) AS ts
-        FROM
-            meli-bi-data.MELIDATA.ADVERTISING
-        WHERE
-            `ds` >= '{ds}'
-            AND `event` = 'display_clicks'
-            AND site = '{site_id}'
-            AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
-            AND (NOT
-                REGEXP_CONTAINS(LOWER(`device`.user_agent),
-                '.*(libwww|wget|lwp|damnBot|bbbike|java|spider|crawl|slurp|bot|feedburner|googleimageproxy|google web preview).*')
-            )
-    ),
-    prints_clicks AS (
-        SELECT DISTINCT
-            prints.id AS id,
-            prints.ds AS ds,
-            prints.site,
-            CAST(
-                json_extract_scalar(prints.event_data, '$.campaign_id') AS INT64
-            ) AS campaign_id,
-            CAST(json_extract_scalar(prints.event_data, '$.line_item_id') AS INT64) AS line_item_id,
-            CAST(json_extract_scalar(prints.event_data, '$.creative_id') AS INT64) AS creative_id,
-            CASE
-                WHEN clicks.ds IS NOT NULL THEN 1 
-                ELSE 0
-            END AS target
-        FROM prints
-        LEFT JOIN clicks
-        ON prints.print_id = clicks.print_id
-            AND ((prints.user_id = clicks.user_id) OR clicks.user_id IS NULL)
-            AND TIMESTAMP_DIFF(clicks.ts, prints.ts, SECOND) <= {click_window}
-            AND prints.site = clicks.site
-    )
+WITH max_ds_hour_table AS
+(
+  SELECT MAX(ds_hour) AS max_ds_hour
+  FROM meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
+  WHERE site = '{site_id}'
+),
+lag_ds_hour_table AS
+(
+  SELECT ds_hour,
+    CASE
+      WHEN ds_hour = max_ds_hour THEN
+        LAG(ds_hour) OVER(
+          PARTITION BY site
+          ORDER BY ds_hour
+        )
+      ELSE NULL
+    END AS lag_ds_hour
+  FROM meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
+  CROSS JOIN max_ds_hour_table
+  WHERE site = '{site_id}'
+),
+start_hour_table AS
+(
+  SELECT MAX(lag_ds_hour) AS start_hour FROM lag_ds_hour_table
+)
 
-    SELECT
-        ds,
-        site,
-        campaign_id,
-        line_item_id,
-        creative_id,
-        COUNT(*) AS n_prints,
-        SUM(target) AS n_clicks
-    FROM prints_clicks
-    GROUP BY 1,2,3,4,5
+SELECT a.*, CAST(hour AS INT64) AS int_hour
+FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR a
+CROSS JOIN start_hour_table
+WHERE ds >= DATE(SPLIT(START_HOUR, 'T')[offset(0)])
+    AND CONCAT(ds, 'T', hour) >= start_hour
+    AND site = '{site_id}'
