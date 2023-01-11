@@ -1,10 +1,9 @@
 "Utilities for connecting to databases"
 
-import json
 import base64
+import json
 
 import pandas as pd
-
 from melitk import logging
 from melitk.connectors.sources.bigquery import BigQuery as BigQueryConn
 from melitk.melipass import get_secret
@@ -19,9 +18,10 @@ class BigQuery:
         """Create an instance of SparkSQL connector"""
 
         secret_b64 = get_secret("SECRET_SB_DSP_CREAT")
-        secret_decoded = base64.b64decode(secret_b64)
-        gcp_creds = json.loads(secret_decoded)
-        self.database: BigQueryConn = BigQueryConn(gcp_creds)
+        if secret_b64 is not None:
+            secret_decoded = base64.b64decode(secret_b64)
+            gcp_creds = json.loads(secret_decoded)
+            self.database: BigQueryConn = BigQueryConn(gcp_creds)
 
     def run_query(self, query: str) -> pd.DataFrame:
         """

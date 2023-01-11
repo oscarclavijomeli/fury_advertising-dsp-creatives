@@ -2,18 +2,17 @@
 
 import json
 from datetime import datetime
+from typing import Dict, List, Tuple, Union
 
-from typing import Tuple, Union, Dict, List
 import pandas as pd
-
 from melitk import logging
 from melitk.fda2 import runtime
 
+from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH_INSERT_DATA, QUERY_PATHS
 from app.data.utils.bigquery import BigQuery
-from app.data.utils.params_bigquery import ParamsBigquery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATHS, QUERY_PATH_INSERT_DATA
+from app.data.utils.params_bigquery import ParamsBigquery
 
 logger = logging.getLogger(__name__)
 bigquery = BigQuery()
@@ -43,8 +42,9 @@ class BetaEstimator:
         logger.info("Loading input...")
         self.input = bigquery.run_query("SELECT * FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS")
         logger.info("Input loaded.")
+        self.sanity_check_results = None
 
-    def calculate_beta_parameters(self, divider: float) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def calculate_beta_parameters(self, divider: float = PARAMS["divider"]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Calculates alpha and beta parameters
 
@@ -75,7 +75,7 @@ class BetaEstimator:
         logger.info("Alpha and beta parameters calculated for a new creative.")
         return creatives, line_items
 
-    def run_sanity_checks(self, dataframe: pd.DataFrame) -> None:
+    def run_sanity_checks(self, dataframe: pd.DataFrame, load_results: bool = True) -> None:
         """Applies great expectation to the output dataframe"""
 
         logger.info("Creates great expectations...")
@@ -119,19 +119,21 @@ class BetaEstimator:
         validator.save_expectation_suite()
 
         results = dq_checker.validate_data()
+        self.sanity_check_results = results
 
         if "hour" in dataframe.columns:
             process = "dsp_creativos_init_data"
         else:
             process = "dsp_creativos_artifact_data"
 
-        params = ParamsBigquery(results=results, process=process, datetime_param=datetime.now()).create_params()
-        query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
+        if load_results:
+            params = ParamsBigquery(results=results, process=process, datetime_param=datetime.now()).create_params()
+            query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
+            bigquery.run_query(query)
 
-        bigquery.run_query(query)
-
+    @staticmethod
     def dataframe2json(
-        self, creatives: pd.DataFrame, line_items: pd.DataFrame
+        creatives: pd.DataFrame, line_items: pd.DataFrame
     ) -> List[Dict[str, Union[int, List[Dict[str, Union[int, List[Dict[str, int]], Dict[str, float], float]]]]]]:
         """Transforms output type from pandas.DataFrame to dictionary"""
 

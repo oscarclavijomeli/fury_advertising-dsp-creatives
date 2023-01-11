@@ -1,0 +1,171 @@
+checkpoint_config:
+  action_list:
+  - action:
+      class_name: StoreValidationResultAction
+    name: store_validation_result
+  - action:
+      class_name: StoreEvaluationParametersAction
+    name: store_evaluation_params
+  - action:
+      class_name: UpdateDataDocsAction
+      site_names: []
+    name: update_data_docs
+  batch_request: {}
+  class_name: Checkpoint
+  config_version: 1.0
+  default_validation_id: null
+  evaluation_parameters: {}
+  expectation_suite_ge_cloud_id: null
+  expectation_suite_name: null
+  ge_cloud_id: null
+  module_name: great_expectations.checkpoint
+  name: dmp_tracks[1]_checkpoint
+  notify_on: null
+  notify_with: null
+  profilers: []
+  run_name_template: '%Y%m%d-%H%M%S'
+  runtime_configuration: {}
+  site_names: null
+  slack_webhook: null
+  template_name: null
+  validations: []
+run_id:
+  run_name: 20220928-160136
+  run_time: '2022-09-28T16:01:36.200800+00:00'
+run_results:
+  ? ValidationResultIdentifier::dmp_tracks[1]_expectation_suite/20220928-160136/20220928T160136.200800Z/d4d5ac729e95cd6d9740c47125479cc1
+  : actions_results:
+      store_evaluation_params:
+        class: StoreEvaluationParametersAction
+      store_validation_result:
+        class: StoreValidationResultAction
+      update_data_docs:
+        class: UpdateDataDocsAction
+        local_site: file:///Users/ndealvarez/meli_projects/advertising-dmp-mld/great_expectations/uncommitted/data_docs/local_site/validations/dmp_tracks[1]_expectation_suite/20220928-160136/20220928T160136.200800Z/d4d5ac729e95cd6d9740c47125479cc1.html
+    validation_result:
+      evaluation_parameters: {}
+      meta:
+        active_batch_definition:
+          batch_identifiers:
+            run_id: "\n                dmp_tracks[1]_runtime=20220928\n          \
+              \      "
+          data_asset_name: dmp_tracks[1]_20220928
+          data_connector_name: bigquery_runtime_connector
+          datasource_name: dmp_tracks[1]
+        batch_markers:
+          ge_load_time: 20220928T210136.215304Z
+        batch_spec:
+          data_asset_name: dmp_tracks[1]_20220928
+          query: SQLQuery
+        checkpoint_id: null
+        checkpoint_name: dmp_tracks[1]_checkpoint
+        expectation_suite_name: dmp_tracks[1]_expectation_suite
+        great_expectations_version: 0.15.19
+        run_id:
+          run_name: 20220928-160136
+          run_time: '2022-09-28T16:01:36.200800+00:00'
+        validation_id: null
+        validation_time: 20220928T210201.963513Z
+      results:
+      - exception_info:
+          exception_message: null
+          exception_traceback: null
+          raised_exception: false
+        expectation_config:
+          expectation_type: expect_column_to_exist
+          kwargs:
+            batch_id: d4d5ac729e95cd6d9740c47125479cc1
+            column: user_id
+          meta: {}
+        meta: {}
+        result: {}
+        success: true
+      - exception_info:
+          exception_message: null
+          exception_traceback: null
+          raised_exception: false
+        expectation_config:
+          expectation_type: expect_column_values_to_be_in_set
+          kwargs:
+            batch_id: d4d5ac729e95cd6d9740c47125479cc1
+            column: site
+            value_set:
+            - MLB
+            - MLA
+            - MLC
+            - MCO
+            - MLM
+            - MLU
+            - MEC
+            - MPE
+          meta: {}
+        meta: {}
+        result:
+          element_count: 116358728
+          missing_count: 0
+          missing_percent: 0.0
+          partial_unexpected_counts: []
+          partial_unexpected_index_list: null
+          partial_unexpected_list: []
+          unexpected_count: 0
+          unexpected_percent: 0.0
+          unexpected_percent_nonmissing: 0.0
+          unexpected_percent_total: 0.0
+        success: true
+      - exception_info:
+          exception_message: null
+          exception_traceback: null
+          raised_exception: false
+        expectation_config:
+          expectation_type: expect_column_values_to_be_in_set
+          kwargs:
+            batch_id: d4d5ac729e95cd6d9740c47125479cc1
+            column: path
+            value_set:
+            - /vip
+            - /pdp
+          meta: {}
+        meta: {}
+        result:
+          element_count: 116358728
+          missing_count: 0
+          missing_percent: 0.0
+          partial_unexpected_counts: []
+          partial_unexpected_index_list: null
+          partial_unexpected_list: []
+          unexpected_count: 0
+          unexpected_percent: 0.0
+          unexpected_percent_nonmissing: 0.0
+          unexpected_percent_total: 0.0
+        success: true
+      - exception_info:
+          exception_message: null
+          exception_traceback: null
+          raised_exception: false
+        expectation_config:
+          expectation_type: expect_column_values_to_match_regex
+          kwargs:
+            batch_id: d4d5ac729e95cd6d9740c47125479cc1
+            column: user_timestamp_string
+            regex: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}-\d{4}
+          meta: {}
+        meta: {}
+        result:
+          element_count: 116358728
+          missing_count: 0
+          missing_percent: 0.0
+          partial_unexpected_counts: []
+          partial_unexpected_index_list: null
+          partial_unexpected_list: []
+          unexpected_count: 0
+          unexpected_percent: 0.0
+          unexpected_percent_nonmissing: 0.0
+          unexpected_percent_total: 0.0
+        success: true
+      statistics:
+        evaluated_expectations: 4
+        success_percent: 100.0
+        successful_expectations: 4
+        unsuccessful_expectations: 0
+      success: true
+success: true
