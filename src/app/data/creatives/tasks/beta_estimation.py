@@ -4,20 +4,15 @@ import time
 from datetime import datetime
 
 from melitk import logging, metrics
-from melitk.fda2 import runtime
 from retry import retry
 
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH_GREAT
+from app.conf.settings import OUTPUT_ARTIFACT_NAME, PARAMS, QUERY_PATH_GREAT, TAGS
 from app.data.creatives.utils.beta_estimator import BetaEstimator
-from app.data.utils.bigquery import bigquery
+from app.data.utils.bigquery import BigQuery
 from app.data.utils.load_query import load_format
 
 logger = logging.getLogger(__name__)
-
-PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
-OUTPUT_ARTIFACT_NAME = f"{PARAMS['env']}_{PARAMS['artifact_name']}"
-DIVIDER = PARAMS["divider"]
-TAGS = {"application": PARAMS["application"], "env": PARAMS["env"]}
+bigquery = BigQuery()
 
 
 @retry(tries=3, backoff=60)
@@ -35,7 +30,7 @@ def run_etl() -> None:
         beta_estimator.run_sanity_checks(dataframe=initial_data)
 
         logger.info("Computing beta parameters.")
-        creatives, line_items = beta_estimator.calculate_beta_parameters(divider=DIVIDER)
+        creatives, line_items = beta_estimator.calculate_beta_parameters(divider=PARAMS["divider"])
 
         logger.info("Applying sanity checks to final data.")
         beta_estimator.run_sanity_checks(dataframe=creatives)

@@ -2,6 +2,8 @@
 General app's level configuration items.
 """
 
+from melitk.fda2 import runtime
+
 MODEL_HYPER_PARAMETERS = {"foo": "bar"}
 THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42
 
@@ -16,6 +18,10 @@ DEFAULT_PARAMS = {
     "epsilon": 0.2,
     "application": "advertising-dsp-creatives",
 }
+PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
+OUTPUT_ARTIFACT_NAME = f"{PARAMS['env']}_{PARAMS['artifact_name']}"
+TAGS = {"application": PARAMS["application"], "env": PARAMS["env"], "site": PARAMS["site_id"]}
+
 QUERY_PATHS = {"insert": "src/app/data/creatives/queries/daily_insert.sql", "group": "src/app/data/creatives/queries/group.sql"}
 QUERY_PATH_GREAT = "src/app/data/creatives/queries/daily_great_expectations.sql"
 QUERY_PATH_INSERT_DATA = "src/app/data/creatives/queries/data_validation_insert.sql"

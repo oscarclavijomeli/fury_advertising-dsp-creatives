@@ -8,7 +8,7 @@ import pandas as pd
 from melitk import logging
 from melitk.fda2 import runtime
 
-from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH_INSERT_DATA, QUERY_PATHS
+from app.conf.settings import PARAMS, QUERY_PATH_INSERT_DATA, QUERY_PATHS
 from app.data.utils.bigquery import BigQuery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
@@ -16,14 +16,11 @@ from app.data.utils.params_bigquery import ParamsBigquery
 
 logger = logging.getLogger(__name__)
 
-PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
-EPSILON = PARAMS["epsilon"]
-
 
 class BetaEstimator:
     """Class to estimate parameters of the Beta distribution and save them into an artifact"""
 
-    def __init__(self, big_query=BigQuery()) -> None:
+    def __init__(self, big_query: BigQuery = BigQuery()) -> None:
         """
         Loads grouped data
         """
@@ -66,7 +63,7 @@ class BetaEstimator:
         line_items["beta"] = (line_items["n_prints"] - line_items["n_clicks"]) / (
             line_items["n_creatives"] * line_items["hours"] * divider
         ) + 1
-        line_items["epsilon"] = EPSILON
+        line_items["epsilon"] = PARAMS["epsilon"]
 
         logger.info("Alpha and beta parameters calculated for a new creative.")
         return creatives, line_items
