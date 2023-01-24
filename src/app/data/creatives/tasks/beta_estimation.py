@@ -3,19 +3,16 @@
 import time
 from datetime import datetime
 
+from melitk import logging, metrics
+from melitk.fda2 import runtime
 from retry import retry
 
-from melitk import logging
-from melitk import metrics
-from melitk.fda2 import runtime
-
-from app.data.utils.load_query import load_format
-from app.data.creatives.utils.beta_estimator import BetaEstimator
-from app.data.utils.bigquery import BigQuery
 from app.conf.settings import DEFAULT_PARAMS, QUERY_PATH_GREAT
+from app.data.creatives.utils.beta_estimator import BetaEstimator
+from app.data.utils.bigquery import bigquery
+from app.data.utils.load_query import load_format
 
 logger = logging.getLogger(__name__)
-bigquery = BigQuery()
 
 PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
 OUTPUT_ARTIFACT_NAME = f"{PARAMS['env']}_{PARAMS['artifact_name']}"

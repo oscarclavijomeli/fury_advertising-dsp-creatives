@@ -15,7 +15,6 @@ from app.data.utils.load_query import load_format
 from app.data.utils.params_bigquery import ParamsBigquery
 
 logger = logging.getLogger(__name__)
-bigquery = BigQuery()
 
 PARAMS = runtime.inputs.parameters if dict(runtime.inputs.parameters) else DEFAULT_PARAMS
 EPSILON = PARAMS["epsilon"]
@@ -24,25 +23,22 @@ EPSILON = PARAMS["epsilon"]
 class BetaEstimator:
     """Class to estimate parameters of the Beta distribution and save them into an artifact"""
 
-    def __init__(self) -> None:
+    def __init__(self, big_query=BigQuery()) -> None:
         """
         Loads grouped data
         """
-
+        bigquery = big_query or BigQuery()
         logger.info("Updating data...")
         sql = load_format(path=QUERY_PATHS["insert"], params=PARAMS)
         bigquery.run_query(sql)
         logger.info("Data updated.")
 
         logger.info("Grouping data...")
-        sql = load_format(path=QUERY_PATHS["group"], params={})
-        bigquery.run_query(sql)
+        sql = load_format(QUERY_PATHS["group"], params=PARAMS)
+        self.input = bigquery.run_query(sql)
         logger.info("Data grouped.")
 
-        logger.info("Loading input...")
-        self.input = bigquery.run_query("SELECT * FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS")
-        logger.info("Input loaded.")
-        self.sanity_check_results = None
+        self.sanity_check_results: Dict[str, str] = {}
 
     def calculate_beta_parameters(self, divider: float = PARAMS["divider"]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -129,7 +125,7 @@ class BetaEstimator:
         if load_results:
             params = ParamsBigquery(results=results, process=process, datetime_param=datetime.now()).create_params()
             query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
-            bigquery.run_query(query)
+            BigQuery().run_query(query)
 
     @staticmethod
     def dataframe2json(

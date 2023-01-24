@@ -4,11 +4,21 @@ DECLARE max_ds_hour STRING;
 DECLARE START_HOUR STRING;
 DECLARE START_DATE DATE;
 
-SET max_ds_hour=(
-  SELECT MAX(ds_hour)
+IF EXISTS(
+  SELECT 1
   FROM `meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR`
   WHERE site = SITE_ID
-);
+) THEN 
+    SET max_ds_hour=(
+      SELECT MAX(ds_hour)
+      FROM `meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR`
+      WHERE site = SITE_ID
+    );
+ELSE
+    SET max_ds_hour=(
+      SELECT CONCAT(CAST(CURRENT_DATE AS STRING), 'T00')
+    );
+END IF;
 
 SET START_HOUR = (SELECT CONCAT(max_ds_hour, ':00:00.000-0400'))
 ;

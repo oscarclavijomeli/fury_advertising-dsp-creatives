@@ -60,9 +60,13 @@ workflows:
                 outputs:
                     artifacts:
                         -   name: "test_ctr_beta_parameters"
-                            version: "0.0.{{TASK.TASK_COUNT}}-MLA-Test"
+                            version: "0.0.{{TASK.TASK_COUNT}}-MLB-Test"
 
                 task-image: # Configuration of task-image to be run (needs to be successfully prepared)
                     name: "beta_estimation"
-                    version: "0.0.8-test"
+                    version: "0.0.13-test"
                         # No runtime arguments need to be declared for this task to run
+                        
+                    inputs:
+                        runtime:
+                            site_id: "MLB"
