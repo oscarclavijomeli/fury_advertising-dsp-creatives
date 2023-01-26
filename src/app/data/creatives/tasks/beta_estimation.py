@@ -24,9 +24,14 @@ def run_etl() -> None:
         logger.info("Initialize beta Estimator.")
         beta_estimator = BetaEstimator()
 
+        if beta_estimator.prints == 0:
+            beta_estimator.save(creative_list=[{}], artifact_name=OUTPUT_ARTIFACT_NAME)
+            return None
+
         logger.info("Applying sanity checks to initial data.")
         sql = load_format(path=QUERY_PATH_GREAT, params=PARAMS)
         initial_data = bigquery.run_query(sql)
+
         beta_estimator.run_sanity_checks(dataframe=initial_data)
 
         logger.info("Computing beta parameters.")

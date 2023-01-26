@@ -8,7 +8,12 @@ import pandas as pd
 from melitk import logging
 from melitk.fda2 import runtime
 
-from app.conf.settings import PARAMS, QUERY_PATH_INSERT_DATA, QUERY_PATHS
+from app.conf.settings import (
+    PARAMS,
+    QUERY_PATH_INSERT_DATA,
+    QUERY_PATH_PRINT_CHECK,
+    QUERY_PATHS,
+)
 from app.data.utils.bigquery import BigQuery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
@@ -25,17 +30,25 @@ class BetaEstimator:
         Loads grouped data
         """
         bigquery = big_query or BigQuery()
-        logger.info("Updating data...")
-        sql = load_format(path=QUERY_PATHS["insert"], params=PARAMS)
-        bigquery.run_query(sql)
-        logger.info("Data updated.")
 
-        logger.info("Grouping data...")
-        sql = load_format(QUERY_PATHS["group"], params=PARAMS)
-        self.input = bigquery.run_query(sql)
-        logger.info("Data grouped.")
+        logger.info("Checking if there is historical data for the site...")
+        sql = load_format(path=QUERY_PATH_PRINT_CHECK, params=PARAMS)
+        self.prints = bigquery.run_query(sql)["prints"][0]
 
-        self.sanity_check_results: Dict[str, str] = {}
+        if self.prints == 0:
+            logger.info("No data for site, artifact is going to be empty.")
+        else:
+            logger.info("Updating data...")
+            sql = load_format(path=QUERY_PATHS["insert"], params=PARAMS)
+            bigquery.run_query(sql)
+            logger.info("Data updated.")
+
+            logger.info("Grouping data...")
+            sql = load_format(QUERY_PATHS["group"], params=PARAMS)
+            self.input = bigquery.run_query(sql)
+            logger.info("Data grouped.")
+
+            self.sanity_check_results: Dict[str, str] = {}
 
     def calculate_beta_parameters(self, divider: float = PARAMS["divider"]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """

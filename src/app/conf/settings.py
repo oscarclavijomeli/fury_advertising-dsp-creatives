@@ -25,6 +25,7 @@ TAGS = {"application": PARAMS["application"], "env": PARAMS["env"], "site": PARA
 QUERY_PATHS = {"insert": "src/app/data/creatives/queries/daily_insert.sql", "group": "src/app/data/creatives/queries/group.sql"}
 QUERY_PATH_GREAT = "src/app/data/creatives/queries/daily_great_expectations.sql"
 QUERY_PATH_INSERT_DATA = "src/app/data/creatives/queries/data_validation_insert.sql"
+QUERY_PATH_PRINT_CHECK = "src/app/data/creatives/queries/prints_check.sql"
 PROJECT_ID = {"test": "meli-bi-data", "prod": "meli-bi-data"}
 DATASET_ID = {"test": "SBOX_DSPCREATIVOS", "prod": "SBOX_DSPCREATIVOS"}
 SECRET_NAME = {"test": "SECRET_SB_DSP_CREAT", "prod": "SECRET_SB_DSP_CREAT"}
