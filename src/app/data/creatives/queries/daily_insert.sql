@@ -7,7 +7,7 @@ DECLARE START_DATE DATE;
 IF EXISTS(
   SELECT 1
   FROM `meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR`
-  WHERE site = SITE_ID
+  WHERE site = SITE_ID and ds_hour is not null 
 ) THEN 
     SET max_ds_hour=(
       SELECT MAX(ds_hour)
