@@ -3,6 +3,8 @@ Create data to insert into bigquery
 """
 from datetime import datetime
 
+from app.conf.settings import PARAMS
+
 
 class ParamsBigquery:
     "Generate de date to insert into bigquery"
@@ -30,6 +32,7 @@ class ParamsBigquery:
             "success": self.results["success"],
             "success_statistics": tuple(self.results["success_statistics"].values()),
             "expectations": values_insert,
+            "site": PARAMS["site_id"],
         }
 
         return params

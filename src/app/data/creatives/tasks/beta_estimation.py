@@ -2,6 +2,7 @@
 
 import time
 from datetime import datetime
+import pandas as pd
 
 from melitk import logging, metrics
 from retry import retry
@@ -31,7 +32,21 @@ def run_etl() -> None:
         logger.info("Applying sanity checks to initial data.")
         sql = load_format(path=QUERY_PATH_GREAT, params=PARAMS)
         initial_data = bigquery.run_query(sql)
-
+        if len(initial_data) == 0:
+            columns = [
+                "ds",
+                "hour",
+                "site",
+                "campaign_id",
+                "line_item_id",
+                "creative_id",
+                "sample_type",
+                "n_prints",
+                "n_clicks",
+                "int_hour",
+            ]
+            initial_data = pd.DataFrame(columns=columns)
+            return None
         beta_estimator.run_sanity_checks(dataframe=initial_data)
 
         logger.info("Computing beta parameters.")
@@ -48,11 +63,13 @@ def run_etl() -> None:
 
         logger.info("Output artifact created.")
         metrics.record_count("advertising.dsp.etl.beta_estimation.success", tags=TAGS)
+        return None
 
     except Exception as exception:  # pylint: disable=broad-except
         logger.info("Excecution time: %s", datetime.now().strftime("%Y-%m-%dT%H:%M"))
         logger.exception("Exception running task: %s", exception)
         metrics.record_count("advertising.dsp.etl.beta_estimation.error", tags=TAGS)
+        return None
 
     finally:
         total_end_time = time.perf_counter()
