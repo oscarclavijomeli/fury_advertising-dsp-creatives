@@ -2,7 +2,6 @@ DECLARE SITE_ID STRING DEFAULT '{site_id}';
 DECLARE TIME_ZONE STRING DEFAULT '{time_zone}';
 DECLARE max_ds_hour STRING;
 DECLARE START_HOUR STRING;
-DECLARE START_DATE DATE;
 
 IF EXISTS(
   SELECT 1
@@ -16,14 +15,11 @@ IF EXISTS(
     );
 ELSE
     SET max_ds_hour=(
-      SELECT CONCAT(CAST(CURRENT_DATE AS STRING), 'T00')
+      SELECT CONCAT(CAST(EXTRACT(DATE FROM CURRENT_DATETIME('-04')) - 7 AS STRING), 'T00')
     );
 END IF;
 
 SET START_HOUR = (SELECT CONCAT(max_ds_hour, ':00:00.000-0400'))
-;
-
-SET START_DATE = (SELECT DATE(SPLIT(START_HOUR, 'T')[offset(0)]))
 ;
 
 INSERT INTO meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR
@@ -41,7 +37,7 @@ WITH prints AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= START_DATE
+        `ds` >= max_ds_hour
         AND server_timestamp >= START_HOUR
         AND `event` = 'display_prints'
         AND site = SITE_ID
@@ -64,7 +60,7 @@ clicks AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= START_DATE
+        `ds` >= max_ds_hour
         AND server_timestamp >= START_HOUR
         AND `event` = 'display_clicks'
         AND site = SITE_ID

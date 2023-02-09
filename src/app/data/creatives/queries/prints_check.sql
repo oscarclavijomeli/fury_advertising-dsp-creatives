@@ -6,7 +6,7 @@ SELECT
 FROM
     meli-bi-data.MELIDATA.ADVERTISING
 WHERE
-    `ds` >= date(CURRENT_DATE-7)
+    `ds` >= date(EXTRACT(DATE FROM CURRENT_DATETIME(TIME_ZONE))-7)
     AND `event` = 'display_prints'
     AND site = SITE_ID
     AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
