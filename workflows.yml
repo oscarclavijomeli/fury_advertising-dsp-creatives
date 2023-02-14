@@ -70,3 +70,4 @@ workflows:
                     inputs:
                         runtime:
                             site_id: "{{SITE}}"
+                            env: "{{ENV}}"

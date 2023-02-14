@@ -2,6 +2,7 @@ DECLARE SITE_ID STRING DEFAULT '{site_id}';
 DECLARE TIME_ZONE STRING DEFAULT '{time_zone}';
 DECLARE max_ds_hour STRING;
 DECLARE START_HOUR STRING;
+DECLARE START_DATE DATE;
 
 IF EXISTS(
   SELECT 1
@@ -15,12 +16,12 @@ IF EXISTS(
     );
 ELSE
     SET max_ds_hour=(
-      SELECT CONCAT(CAST(EXTRACT(DATE FROM CURRENT_DATETIME('-04')) - 7 AS STRING), 'T00')
+      SELECT CONCAT(CAST(EXTRACT(DATE FROM CURRENT_DATETIME(TIME_ZONE)) - 7 AS STRING), 'T00')
     );
 END IF;
 
-SET START_HOUR = (SELECT CONCAT(max_ds_hour, ':00:00.000-0400'))
-;
+SET START_HOUR = (SELECT CONCAT(max_ds_hour, ':00:00.000-0400'));
+SET START_DATE = (SELECT DATE(SPLIT(START_HOUR, 'T')[OFFSET(0)]));
 
 INSERT INTO meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR
 
@@ -37,8 +38,8 @@ WITH prints AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= max_ds_hour
-        AND server_timestamp >= START_HOUR
+        `ds` >= START_DATE
+        AND server_timestamp > START_HOUR
         AND `event` = 'display_prints'
         AND site = SITE_ID
         AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
@@ -60,8 +61,8 @@ clicks AS (
     FROM
         meli-bi-data.MELIDATA.ADVERTISING
     WHERE
-        `ds` >= max_ds_hour
-        AND server_timestamp >= START_HOUR
+        `ds` >= START_DATE
+        AND server_timestamp > START_HOUR
         AND `event` = 'display_clicks'
         AND site = SITE_ID
         AND json_extract_scalar(`event_data`, '$.content_source') = 'DSP'
@@ -108,13 +109,21 @@ GROUP BY 1,2,3,4,5,6,7
 ;
 
 INSERT INTO meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
-SELECT SITE_ID, MAX(CONCAT(ds, 'T', hour))
+SELECT DISTINCT SITE_ID, CONCAT(ds, 'T', hour)
 FROM meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR
-WHERE site = SITE_ID
+WHERE site = SITE_ID AND CONCAT(ds, 'T', hour) > max_ds_hour
 ;
 
 DELETE meli-bi-data.SBOX_DSPCREATIVOS.BQ_PRINTS_CLICKS_PER_HOUR a
 WHERE a.site = SITE_ID AND CONCAT(a.ds, 'T', a.hour) = (
+    SELECT MAX(ds_hour)
+    FROM meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
+    WHERE site = SITE_ID
+)
+;
+
+DELETE meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR a
+WHERE a.site = SITE_ID AND ds_hour = (
     SELECT MAX(ds_hour)
     FROM meli-bi-data.SBOX_DSPCREATIVOS.BETA_ESTIMATION_LAST_DATE_HOUR
     WHERE site = SITE_ID
