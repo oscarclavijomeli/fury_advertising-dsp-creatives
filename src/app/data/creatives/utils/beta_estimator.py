@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Union
 
 import pandas as pd
-from melitk import logging
+from melitk import logging, metrics
 from melitk.fda2 import runtime
 
 from app.conf.settings import (
@@ -13,6 +13,7 @@ from app.conf.settings import (
     QUERY_PATH_INSERT_DATA,
     QUERY_PATH_PRINT_CHECK,
     QUERY_PATHS,
+    TAGS,
 )
 from app.data.utils.bigquery import BigQuery
 from app.data.utils.great_expectations_service import DataQuality
@@ -20,6 +21,8 @@ from app.data.utils.load_query import load_format
 from app.data.utils.params_bigquery import ParamsBigquery
 
 logger = logging.getLogger(__name__)
+
+sites = ["MLA", "MLB", "MLC", "MCO", "MLM", "MLU", "MEC", "MPE"]
 
 
 class BetaEstimator:
@@ -49,6 +52,7 @@ class BetaEstimator:
             logger.info("Data grouped.")
 
             self.sanity_check_results: Dict[str, str] = {}
+            self.process = ""
 
     def calculate_beta_parameters(self, divider: float = PARAMS["divider"]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -88,9 +92,10 @@ class BetaEstimator:
 
         if "hour" in dataframe.columns:
             dq_checker = DataQuality(datasource_name="track1", conexion_type="Pandas", artifact=dataframe, environment=PARAMS["env"])
+            self.process = "init_data"
         else:
             dq_checker = DataQuality(datasource_name="track2", conexion_type="Pandas", artifact=dataframe, environment=PARAMS["env"])
-
+            self.process = "artifact_data"
         validator = dq_checker.get_validator()
 
         if "hour" in dataframe.columns:
@@ -100,6 +105,7 @@ class BetaEstimator:
             validator.expect_column_values_to_be_of_type("n_prints", "int")
             validator.expect_column_values_to_be_of_type("n_clicks", "int")
             validator.expect_column_values_to_not_be_null("site")
+            validator.expect_column_values_to_be_in_set("site", sites)
             validator.expect_column_values_to_not_be_null("n_prints")
             validator.expect_column_values_to_not_be_null("n_clicks")
             validator.expect_column_values_to_be_between("n_prints", min_value=0)
@@ -122,18 +128,25 @@ class BetaEstimator:
         validator.expect_column_values_to_not_be_null("campaign_id")
         validator.expect_column_values_to_not_be_null("line_item_id")
         validator.expect_column_values_to_not_be_null("creative_id")
-        validator.save_expectation_suite()
+        validator.save_expectation_suite(discard_failed_expectations=False)
 
         results = dq_checker.validate_data()
         self.sanity_check_results = results
 
-        if "hour" in dataframe.columns:
-            process = "dsp_creativos_init_data"
-        else:
-            process = "dsp_creativos_artifact_data"
+        for expectation in results["expectations"]:
+            if expectation["success"] is False:
+                metrics.record_count(
+                    f"advertising.dsp_creatives.{self.process}_sanitycheck_etl_metrics.error_validations",
+                    tags={"env": TAGS["env"]},
+                )
+                break
+
+        logger.info("Inserting data validation results...")
+
+        process_total = "dsp_creativos_" + self.process
 
         if load_results:
-            params = ParamsBigquery(results=results, process=process, datetime_param=datetime.now()).create_params()
+            params = ParamsBigquery(results=results, process=process_total, datetime_param=datetime.now()).create_params()
             query = load_format(path=QUERY_PATH_INSERT_DATA, params=params)
             BigQuery().run_query(query)
 
