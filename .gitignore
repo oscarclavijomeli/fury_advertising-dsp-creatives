@@ -90,3 +90,6 @@ great_expectations/*
 
 # test notebooks
 test_*.ipynb
+
+# images
+*.png
