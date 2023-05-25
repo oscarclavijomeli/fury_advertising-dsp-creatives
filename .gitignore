@@ -93,3 +93,7 @@ test_*.ipynb
 
 # images
 *.png
+
+# great expectations files
+*.ge_store_backend_id
+*config_variables.yml

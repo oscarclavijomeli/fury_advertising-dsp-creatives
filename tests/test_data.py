@@ -2,7 +2,11 @@
 Unit and integration tests for your ETL code.
 
 """
-from app.data.training_dataset import (serialize_dataset, unserialize_dataset, MyETL, InvalidDataError)
+from app.data.training_dataset import (
+    serialize_dataset,
+    unserialize_dataset,
+    InvalidDataError,
+)
 
 
 import pytest
@@ -14,7 +18,7 @@ def test_data_marshalling():
 
 
 class TestMyETLRunTask:
-    """Example tests for your ETL process. Replace with you own relevan tests."""
+    """Example tests for your ETL process. Replace with you own relevant tests."""
 
     def test_generated_data_is_validated(self, get_mocked_etl):
         e = get_mocked_etl("save_as_fda_artifact", "generate_data", "validate_data")
