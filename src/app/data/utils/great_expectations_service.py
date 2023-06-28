@@ -2,26 +2,24 @@
 Creates great expectations service
 """
 
+import copy
 import datetime
+import logging
 import os
 import pathlib
-import logging
-import copy
 from typing import Union
 
-import ruamel
-from ruamel import yaml
 import pandas as pd
-
-from melitk.melipass import get_secret
-
-import great_expectations as ge
+import ruamel
 from great_expectations.core.batch import RuntimeBatchRequest
 from great_expectations.core.expectation_suite import ExpectationSuite
-from great_expectations.validator.validator import Validator
 from great_expectations.exceptions import DataContextError
-from app.conf.settings import PROJECT_ID, DATASET_ID, SECRET_NAME
+from great_expectations.validator.validator import Validator
+from melitk.melipass import get_secret
+from ruamel import yaml
 
+import great_expectations as ge
+from app.conf.settings import DATASET_ID, PROJECT_ID, SECRET_NAME
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s %(name)s : %(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -33,7 +31,13 @@ class DataQuality:
     Sets service
     """
 
-    def __init__(self, datasource_name: str, conexion_type: str, artifact: pd.DataFrame, environment: str) -> None:
+    def __init__(
+        self,
+        datasource_name: str,
+        conexion_type: str,
+        artifact: pd.DataFrame,
+        environment: str,
+    ) -> None:
         """
         Create great expectations context and default runtime datasource
 
@@ -94,7 +98,6 @@ data_connectors:
         self.context: ge.data_context.DataContext = context
 
     def _create_expectation_suite_if_not_exist(self) -> None:
-
         """
         Create expectation suite if not exist
         """
@@ -102,13 +105,13 @@ data_connectors:
         try:
             # create expectation suite
             self.context.create_expectation_suite(
-                expectation_suite_name=f"{self.datasource_name}_expectation_suite", overwrite_existing=False
+                expectation_suite_name=f"{self.datasource_name}_expectation_suite",
+                overwrite_existing=False,
             )
         except DataContextError as error:
             log.info(error)
 
     def get_expectation_suite(self, name_expectation_suite: Union[str, None] = None) -> ExpectationSuite:
-
         """
         Retrieve current expectation suite
         """
@@ -126,7 +129,6 @@ data_connectors:
             log.info("%s checkpoint is already created", self.datasource_name)
 
         except ge.exceptions.CheckpointNotFoundError:
-
             checkpoint_config = {
                 "name": f"{self.datasource_name}_checkpoint",
                 "config_version": 1.0,
@@ -141,7 +143,6 @@ data_connectors:
             raise exception
 
     def _create_batch_data(self) -> RuntimeBatchRequest:
-
         """
         create runtime batch request from the input pandas dataframe
         """
@@ -161,7 +162,6 @@ data_connectors:
         return batch_request
 
     def get_validator(self) -> Validator:
-
         """
         Retrieving a validator object for a fine grain adjustment on the expectation suite.
         """
@@ -184,19 +184,16 @@ data_connectors:
         return validator
 
     def _processing_results(self, data: dict) -> dict:
-
         results = {}
         expectation_result = {}
         expectation = {}
         expectations = []
 
         for _, value in data["run_results"].items():
-
             results["success"] = value["validation_result"]["success"]
             results["success_statistics"] = value["validation_result"]["statistics"]
 
             for item in value["validation_result"]["results"]:
-
                 expectation["expectation_type"] = item["expectation_config"]["expectation_type"]
                 expectation["success"] = item["success"]
 
@@ -222,7 +219,6 @@ data_connectors:
         return results
 
     def validate_data(self) -> dict:
-
         """
         Validate dataset using the input dataset when initiated the class
         or user provided dataset when calling the method.

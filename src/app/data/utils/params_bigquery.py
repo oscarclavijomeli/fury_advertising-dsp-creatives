@@ -23,7 +23,11 @@ class ParamsBigquery:
 
         values_insert = []
         for values in self.results["expectations"]:
-            insert_data = (values["expectation_type"], values["success"], str(values["args"].values()).replace("dict_values", ""))
+            insert_data = (
+                values["expectation_type"],
+                values["success"],
+                str(values["args"].values()).replace("dict_values", ""),
+            )
             values_insert.append(insert_data)
 
         params = {

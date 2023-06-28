@@ -1,8 +1,7 @@
 import pickle
 
-from melitk.fda2 import runtime
 from melitk import logging
-
+from melitk.fda2 import runtime
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +11,7 @@ def serialize_dataset(dataset: object) -> bytes:
     # The dataset can be a pickle, json, parquet, pandas... whatever you need.
     # Then, choose the serialization technique that better works for you
     return pickle.dumps(dataset)
+
 
 def unserialize_dataset(stream: bytes) -> object:
     """Decode the given stream of bytes into a dataset (object)."""
@@ -54,6 +54,4 @@ class MyETL:
     def save_as_fda_artifact(self, data):
         # This is how we manage the outputs
         dataset_artifact = runtime.outputs["example_training_dataset"]
-        dataset_artifact.save_from_bytes(
-            data=serialize_dataset(data)
-        )
+        dataset_artifact.save_from_bytes(data=serialize_dataset(data))

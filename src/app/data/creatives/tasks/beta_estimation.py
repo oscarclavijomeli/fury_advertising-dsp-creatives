@@ -3,9 +3,7 @@
 import time
 from datetime import datetime
 
-
 import pandas as pd
-
 from melitk import logging, metrics
 from retry import retry
 
@@ -31,7 +29,6 @@ def run_etl() -> None:
             beta_estimator.save(creative_list=[{}], artifact_name=OUTPUT_ARTIFACT_NAME)
 
         else:
-
             logger.info("Applying sanity checks to initial data.")
             sql = load_format(path=QUERY_PATH_GREAT, params=PARAMS)
             initial_data = bigquery.run_query(sql)
@@ -76,7 +73,9 @@ def run_etl() -> None:
     finally:
         total_end_time = time.perf_counter()
         metrics.record_count(
-            "advertising.dsp.etl.beta_estimation.total_execution_time", increment=(total_end_time - total_start_time), tags=TAGS
+            "advertising.dsp.etl.beta_estimation.total_execution_time",
+            increment=(total_end_time - total_start_time),
+            tags=TAGS,
         )
 
 

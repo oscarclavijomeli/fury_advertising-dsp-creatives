@@ -2,14 +2,9 @@
 Unit and integration tests for your ETL code.
 
 """
-from app.data.training_dataset import (
-    serialize_dataset,
-    unserialize_dataset,
-    InvalidDataError,
-)
-
-
 import pytest
+
+from app.data.training_dataset import InvalidDataError, serialize_dataset, unserialize_dataset
 
 
 def test_data_marshalling():

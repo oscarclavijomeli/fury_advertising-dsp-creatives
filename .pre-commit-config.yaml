@@ -39,3 +39,4 @@ repos:
     -   id: mypy
         args:
           - --config-file=.code_quality/mypy.ini
+        additional_dependencies: ['types-requests']

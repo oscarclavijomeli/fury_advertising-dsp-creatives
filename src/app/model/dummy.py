@@ -4,7 +4,6 @@ from melitk import logging
 
 from app.conf.settings import THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING
 
-
 logger = logging.getLogger(__name__)
 
 

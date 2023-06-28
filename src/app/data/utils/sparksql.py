@@ -1,7 +1,6 @@
 "Utilities for connecting to databases"
 
 import pandas as pd
-
 from melitk import logging
 from melitk.connectors.sources.sparksql import SparkSQL as SparSQLConn
 

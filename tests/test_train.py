@@ -3,8 +3,7 @@ Unit and integration tests for your Training code.
 """
 import pytest
 
-from app.model.train import do_train, main, InvalidRuntime
-
+from app.model.train import InvalidRuntime, do_train, main
 
 SERIALIZED_INPUT = b"so long, and thanks for all the fish"
 DESERIALIZED_INPUT = b"so long, and thanks for all the fish"
@@ -15,10 +14,12 @@ SERIALIZED_MODEL = b"so long, and thanks for all the fish"
 @pytest.fixture
 def mock_model(mocker, get_mocked_model):
     """Mocks de DummyModel that uses the train module"""
+
     def _mock_model(*args):
         model = get_mocked_model(*args)
         mocker.patch("app.model.train.DummyModel", return_value=model)
         return model
+
     return _mock_model
 
 
@@ -28,7 +29,6 @@ def mocked_unserialize_dataset(mocker):
 
 
 class TestTrain:
-
     def test_do_train_calls_model_train_with_deserialized_input(self, mock_model, mocked_unserialize_dataset):
         mocked_unserialize_dataset.return_value = DESERIALIZED_INPUT
         model = mock_model("train", "validate_training", "serialize")

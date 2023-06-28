@@ -5,7 +5,6 @@ from app.conf.settings import MODEL_HYPER_PARAMETERS
 from app.data.training_dataset import unserialize_dataset
 from app.model.dummy import DummyModel
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,16 +24,13 @@ def do_train(artifact_data):
 
 
 def main():
-
     if runtime is None:
         logger.warning("Invalid runtime. Not running in an FDA 2 Task. Training won't run.")
         raise InvalidRuntime()
     else:
         raw_training_data = runtime.inputs.artifacts["example_training_dataset"].load_to_bytes()
         model_data = do_train(raw_training_data)
-        runtime.outputs["example_model"].save_from_bytes(
-            data=model_data
-        )
+        runtime.outputs["example_model"].save_from_bytes(data=model_data)
 
 
 if __name__ == "__main__":
