@@ -5,9 +5,6 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Union
 
 import pandas as pd
-from melitk import logging, metrics
-from melitk.fda2 import runtime
-
 from app.conf.settings import (
     PARAMS,
     QUERY_PATH_INSERT_DATA,
@@ -19,6 +16,8 @@ from app.data.utils.bigquery import BigQuery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
 from app.data.utils.params_bigquery import ParamsBigquery
+from melitk import logging, metrics
+from melitk.fda2 import runtime
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +86,9 @@ class BetaEstimator:
         return alpha, beta
 
     def calculate_beta_parameters(
-        self, divider: float = PARAMS["divider"]
+        self,
+        divider: float = PARAMS["divider"],
+        prints_threshold: int = PARAMS["minimum_prints"],
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Calculates alpha and beta parameters
@@ -98,22 +99,23 @@ class BetaEstimator:
         # First, calculate the parameters for existing creative ids
         logger.info("Calculating alpha and beta parameters for existing creatives...")
         creatives = self.input.copy()
-
-        existing_creatives_result = creatives.apply(
+        existing_creatives = creatives[creatives["n_prints"] >= prints_threshold]
+        existing_creatives_result = existing_creatives.apply(
             self.strategy_existing_creatives, axis=1
         )
-        creatives["alpha"] = existing_creatives_result.apply(lambda x: x[0]).astype(
-            float
-        )
-        creatives["beta"] = existing_creatives_result.apply(lambda x: x[1]).astype(
-            float
-        )
+        existing_creatives["alpha"] = existing_creatives_result.apply(
+            lambda x: x[0]
+        ).astype(float)
+        existing_creatives["beta"] = existing_creatives_result.apply(
+            lambda x: x[1]
+        ).astype(float)
         logger.info("Alpha and beta parameters calculated for existing creatives.")
 
         # Second, calculate the default parameters for new creatives
-        logger.info("Calculating alpha and beta parameters for a new creative...")
-
-        grouped_by_lineitem = creatives.groupby(["campaign_id", "line_item_id"])
+        logger.info("Calculating alpha and beta parameters for a new creative..")
+        grouped_by_lineitem = existing_creatives.groupby(
+            ["campaign_id", "line_item_id"]
+        )
         line_items = (
             grouped_by_lineitem.agg(
                 {
@@ -136,7 +138,7 @@ class BetaEstimator:
         line_items["beta"] = new_creatives_result.apply(lambda x: x[1]).astype(float)
         line_items["epsilon"] = PARAMS["epsilon"]
         logger.info("Alpha and beta parameters calculated for a new creative.")
-        return creatives, line_items
+        return existing_creatives, line_items
 
     def run_sanity_checks(
         self, dataframe: pd.DataFrame, load_results: bool = True

@@ -15,6 +15,7 @@ DEFAULT_PARAMS = {
     "artifact_name": "ctr_beta_parameters",
     "env": "test",
     "divider": 1,
+    "minimum_prints": 500,
     "epsilon": 0.2,
     "application": "advertising-dsp-creatives",
 }
