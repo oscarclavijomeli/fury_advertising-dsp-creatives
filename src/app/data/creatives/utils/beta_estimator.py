@@ -81,12 +81,8 @@ class BetaEstimator:
             ].reset_index(drop=True)
 
         if row["strategy"] == "conversion":
-            alpha = data_filtered["n_conversions"].sum() + 1
-            beta = (
-                data_filtered["n_prints"].sum()
-                - data_filtered["n_conversions"].sum()
-                + 1
-            )
+            alpha = row["n_conversions"] + 1
+            beta = row["n_prints"] - row["n_conversions"] + 1
         else:
             alpha = data_filtered["n_clicks"].sum() + 1
             beta = data_filtered["n_prints"].sum() - data_filtered["n_clicks"].sum() + 1
