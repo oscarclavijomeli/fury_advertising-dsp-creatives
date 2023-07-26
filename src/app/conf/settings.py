@@ -16,6 +16,7 @@ DEFAULT_PARAMS = {
     "env": "test",
     "divider": 1,
     "minimum_prints": 500,
+    "window_days": 3,
     "epsilon": 0.2,
     "application": "advertising-dsp-creatives",
 }

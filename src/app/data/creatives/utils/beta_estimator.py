@@ -1,10 +1,12 @@
 """Estimates parameters of the Beta distribution and save them into an artifact"""
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Union
 
 import pandas as pd
+from melitk import logging, metrics
+from melitk.fda2 import runtime
 from app.conf.settings import (
     PARAMS,
     QUERY_PATH_INSERT_DATA,
@@ -16,8 +18,6 @@ from app.data.utils.bigquery import BigQuery
 from app.data.utils.great_expectations_service import DataQuality
 from app.data.utils.load_query import load_format
 from app.data.utils.params_bigquery import ParamsBigquery
-from melitk import logging, metrics
-from melitk.fda2 import runtime
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class BetaEstimator:
 
     def __init__(self, big_query: BigQuery = BigQuery()) -> None:
         """
-        Loads grouped data
+        Loads grouped data.
         """
         bigquery = big_query or BigQuery()
 
@@ -53,23 +53,53 @@ class BetaEstimator:
             self.sanity_check_results: Dict[str, str] = {}
             self.process = ""
 
-    @staticmethod
-    def strategy_existing_creatives(row):
+    def strategy_existing_creatives(
+        self, row: pd.Series, window_days: int
+    ) -> Tuple[float, float]:
         """
-        Calculates alpha and beta parameters for existing creatives based on the strategy
+        Calculates alpha and beta parameters for existing creatives based on the strategy and window_days.
+
+        Args:
+            row (pd.Series): A row of the DataFrame containing the data for a creative.
+            window_days (int): Number of days to include in the moving window.
+
+        Returns:
+            Tuple[float, float]: A tuple with alpha and beta parameters.
         """
+        ds = row["ds"]
+        creative_id = row["creative_id"]
+        data = self.input.copy()
+        data_filtered = data[
+            (data.ds < ds)
+            & (data.ds >= (ds - timedelta(days=window_days)))
+            & (data.creative_id == creative_id)
+        ].reset_index(drop=True)
+
+        if data_filtered.empty or data_filtered.shape[0] < window_days:
+            data_filtered = data[
+                (data.ds < ds) & (data.creative_id == creative_id)
+            ].reset_index(drop=True)
+
         if row["strategy"] == "conversion":
-            alpha = row["n_conversions"] + 1
-            beta = row["n_prints"] - row["n_conversions"] + 1
+            alpha = data_filtered["n_conversions"].sum() + 1
+            beta = (
+                data_filtered["n_prints"].sum()
+                - data_filtered["n_conversions"].sum()
+                + 1
+            )
         else:
-            alpha = row["n_clicks"] + 1
-            beta = row["n_prints"] - row["n_clicks"] + 1
+            alpha = data_filtered["n_clicks"].sum() + 1
+            beta = data_filtered["n_prints"].sum() - data_filtered["n_clicks"].sum() + 1
+
         return alpha, beta
 
     @staticmethod
-    def strategy_new_creatives(row, divider: float = PARAMS["divider"]):
+    def strategy_new_creatives(
+        row: pd.Series, divider: float = PARAMS["divider"]
+    ) -> Tuple[float, float]:
         """
-        Calculates alpha and beta parameters for new creatives based on the strategy and divider
+        Calculates alpha and beta parameters for new creatives based on the
+        strategy and divider.
         """
         if row["strategy"] == "conversion":
             alpha = (
@@ -89,6 +119,7 @@ class BetaEstimator:
         self,
         divider: float = PARAMS["divider"],
         prints_threshold: int = PARAMS["minimum_prints"],
+        window_days: int = PARAMS["window_days"],
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Calculates alpha and beta parameters
@@ -101,7 +132,7 @@ class BetaEstimator:
         creatives = self.input.copy()
         existing_creatives = creatives[creatives["n_prints"] >= prints_threshold]
         existing_creatives_result = existing_creatives.apply(
-            self.strategy_existing_creatives, axis=1
+            lambda row: self.strategy_existing_creatives(row, window_days), axis=1
         )
         existing_creatives["alpha"] = existing_creatives_result.apply(
             lambda x: x[0]
@@ -173,6 +204,7 @@ class BetaEstimator:
             validator.expect_column_values_to_be_of_type("n_clicks", "int")
             validator.expect_column_values_to_be_of_type("n_conversions", "int")
             validator.expect_column_values_to_be_of_type("strategy", "str")
+            validator.expect_column_values_to_not_be_null("ds")
             validator.expect_column_values_to_not_be_null("site")
             validator.expect_column_values_to_be_in_set("site", sites)
             validator.expect_column_values_to_not_be_null("n_prints")

@@ -72,7 +72,7 @@ class TestRunBetaEstimator:
         """Test that the function is correctly called"""
         bigquery_mock.query.return_value.to_dataframe.return_value = mocked_data
         test_estimator = mock_estimator("calculate_beta_parameters", "strategy_existing_creatives")
-        test_estimator.strategy_existing_creatives(mocked_data)
+        test_estimator.strategy_existing_creatives(mocked_data, 3)
         assert test_estimator.strategy_existing_creatives.called
 
     def test_strategy_new_creatives_is_called(self, mock_estimator, bigquery_mock) -> None:

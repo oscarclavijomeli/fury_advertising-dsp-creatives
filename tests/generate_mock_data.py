@@ -4,6 +4,8 @@ import pandas as pd
 
 np.random.seed(321)
 N = 12
+start_date = pd.to_datetime("2023-05-10")
+dates = [start_date + pd.DateOffset(days=i) for i in range(N)]
 hour = list(range(1, N + 1))
 site = N * ["MLA"]
 campaign_id = N * [12345]
@@ -19,6 +21,7 @@ def generate_mock_data() -> pd.DataFrame:
     """Returns mock data"""
     df_mock = pd.DataFrame(
         {
+            "ds": dates,
             "hours": hour,
             "site": site,
             "campaign_id": campaign_id,
