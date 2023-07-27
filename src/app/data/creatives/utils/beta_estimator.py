@@ -1,7 +1,7 @@
 """Estimates parameters of the Beta distribution and save them into an artifact"""
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Dict, List, Tuple, Union
 
 import pandas as pd
@@ -50,6 +50,11 @@ class BetaEstimator:
             self.input = bigquery.run_query(sql)
             logger.info("Data grouped.")
 
+            logger.info("Grouping data daily...")
+            sql = load_format(QUERY_PATHS["group_daily"], params=PARAMS)
+            self.input_daily = bigquery.run_query(sql)
+            logger.info("Data grouped daily.")
+
             self.sanity_check_results: Dict[str, str] = {}
             self.process = ""
 
@@ -66,18 +71,22 @@ class BetaEstimator:
         Returns:
             Tuple[float, float]: A tuple with alpha and beta parameters.
         """
-        ds = row["ds"]
+        ds = date.today()
         creative_id = row["creative_id"]
-        data = self.input.copy()
+        line_item_id = row["line_item_id"]
+        data = self.input_daily.copy()
         data_filtered = data[
             (data.ds < ds)
-            & (data.ds >= (ds - timedelta(days=window_days)))
-            & (data.creative_id == creative_id)
+            and (data.ds >= (ds - timedelta(days=window_days)))
+            and (data.line_item_id == line_item_id)
+            and (data.creative_id == creative_id)
         ].reset_index(drop=True)
 
         if data_filtered.empty or data_filtered.shape[0] < window_days:
             data_filtered = data[
-                (data.ds < ds) & (data.creative_id == creative_id)
+                (data.ds < ds)
+                & (data.line_item_id == line_item_id)
+                & (data.creative_id == creative_id)
             ].reset_index(drop=True)
 
         if row["strategy"] == "conversion":

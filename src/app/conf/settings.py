@@ -31,6 +31,7 @@ TAGS = {
 QUERY_PATHS = {
     "insert": "src/app/data/creatives/queries/queries_ctr_cvr/daily_insert.sql",
     "group": "src/app/data/creatives/queries/queries_ctr_cvr/group.sql",
+    "group_daily": "src/app/data/creatives/queries/queries_ctr_cvr/group_daily.sql",
 }
 QUERY_PATH_GREAT = "src/app/data/creatives/queries/daily_great_expectations.sql"
 QUERY_PATH_INSERT_DATA = "src/app/data/creatives/queries/data_validation_insert.sql"

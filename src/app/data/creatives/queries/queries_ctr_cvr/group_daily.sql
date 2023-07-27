@@ -1,4 +1,4 @@
--- GROUP
+-- GROUP DAILY
 
 DECLARE SITE_ID STRING DEFAULT "{site_id}";
 
@@ -10,6 +10,7 @@ WITH server_timestamp AS
 )
 
 SELECT
+    ds,
     site,
     campaign_id, line_item_id, creative_id, MAX(strategy) AS strategy,
     SUM(n_prints) AS n_prints,
@@ -18,5 +19,6 @@ SELECT
     TIMESTAMP_DIFF(MAX(ts), MIN(ts), HOUR) + 1 AS hours
 FROM server_timestamp
 WHERE creative_id IS NOT NULL
-GROUP BY 1, 2, 3, 4
+GROUP BY 1, 2, 3, 4, 5
+ORDER BY ds
 ;
