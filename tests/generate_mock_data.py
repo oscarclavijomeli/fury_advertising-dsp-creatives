@@ -1,11 +1,10 @@
 """File to generate mock data about creatives"""
 import numpy as np
 import pandas as pd
+from datetime import timedelta, date
 
 np.random.seed(321)
 N = 12
-start_date = pd.to_datetime("2023-05-10")
-dates = [start_date + pd.DateOffset(days=i) for i in range(N)]
 hour = list(range(1, N + 1))
 site = N * ["MLA"]
 campaign_id = N * [12345]
@@ -17,11 +16,10 @@ n_conversions = (1e3 * np.random.rand(12)).astype(int)
 strategy = (N // 3) * ["conversion", "awareness", "consideration"]
 
 
-def generate_mock_data() -> pd.DataFrame:
+def generate_mock_data(include_ds=False) -> pd.DataFrame:
     """Returns mock data"""
     df_mock = pd.DataFrame(
         {
-            "ds": dates,
             "hours": hour,
             "site": site,
             "campaign_id": campaign_id,
@@ -33,5 +31,9 @@ def generate_mock_data() -> pd.DataFrame:
             "strategy": strategy,
         }
     )
-    df_mock["n_prints"] = df_mock.apply(lambda x: x.n_prints if x.n_prints > x.n_clicks else x.n_clicks, axis=1)
+    df_mock["n_prints"] = df_mock.apply(
+        lambda x: x.n_prints if x.n_prints > x.n_clicks else x.n_clicks, axis=1
+    )
+    if include_ds:
+        df_mock["ds"] = [date.today() - timedelta(days=i) for i in range(N)]
     return df_mock
